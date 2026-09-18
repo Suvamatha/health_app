@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/splash/splash_screen.dart';
+import 'screens/cycle/cycle_screen.dart';
 
 void main() {
   runApp(const WellnessApp());
@@ -17,7 +18,7 @@ class WellnessApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const SplashScreen(),
+      home: const CycleScreen(),
     );
   }
 }

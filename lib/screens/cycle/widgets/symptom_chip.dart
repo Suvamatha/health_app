@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class SymptomChip extends StatelessWidget {
   final String label;
   final bool isSelected;
