@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../onboarding/widgets/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,9 +32,64 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
+
+    Future.delayed(const Duration(milliseconds: 2200), () {
+      if(mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        );
+      }
+    });
   }
+
+  @override 
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    final theme = Theme.of(context);
+    return Scaffold(
+      body: Center(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // logo later
+
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  Icons.spa_outlined,
+                  size: 44,
+                  color: theme.colorScheme.surface,
+                ),
+              ),
+              const SizedBox(height: 24,),
+              Text(
+                'Wellspring',
+                style: theme.textTheme.displayLarge,
+              ),
+              const SizedBox(height: 8,),
+              Text(
+                'Your daily companion',
+                style: theme.textTheme.bodyMedium,
+              )
+            ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
