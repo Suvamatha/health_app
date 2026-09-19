@@ -1,0 +1,73 @@
+import 'package:flutter/material.dart';
+
+class DateStrip extends StatelessWidget {
+  final List<DateTime> dates;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+
+  const DateStrip({
+    super.key,
+    required this.dates,
+    required this.selectedDate,
+    required this.onDateSelected,
+  });
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  static const _weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SizedBox(
+      height: 72,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: dates.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final date = dates[index];
+          final isSelected = _isSameDay(date, selectedDate);
+
+          return GestureDetector(
+            onTap: () => onDateSelected(date),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 52,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _weekdayLabels[date.weekday - 1],
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isSelected
+                          ? theme.colorScheme.surface.withValues(alpha: 0.8)
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${date.day}',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontSize: 18,
+                      color: isSelected ? theme.colorScheme.surface : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

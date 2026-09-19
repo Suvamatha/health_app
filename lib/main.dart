@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:healthtracker/screens/history/history_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/cycle/cycle_screen.dart';
@@ -18,7 +19,7 @@ class WellnessApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const CycleScreen(),
+      home: const HistoryScreen(),
     );
   }
 }
