@@ -15,6 +15,8 @@ class OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final iconContainerSize = (screenWidth * 0.38).clamp(110.0, 170.0);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -22,15 +24,15 @@ class OnboardingPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 140,
-            height: 140,
+            width: iconContainerSize,
+            height: iconContainerSize,
             decoration: BoxDecoration(
               color: theme.colorScheme.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              size: 64,
+              size: iconContainerSize * 0.45, // icon scales WITH the container
               color: theme.colorScheme.primary,
             ),
           ),

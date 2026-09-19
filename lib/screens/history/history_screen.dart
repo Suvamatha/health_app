@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:healthtracker/core/theme/app_spacing.dart';
 import 'package:healthtracker/screens/history/widgets/data_strip.dart';
 import '../../widgets/dashboard_card.dart';
 
@@ -33,7 +34,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: AppSpacing.screenPadding(context),
           children: [
             Text('History', style: theme.textTheme.displayLarge),
             const SizedBox(height: 20),

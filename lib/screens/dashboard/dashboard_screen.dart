@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:healthtracker/core/theme/app_spacing.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/cycle_card.dart';
 import 'widgets/hydration_card.dart';
@@ -13,7 +14,7 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: AppSpacing.screenPadding(context),
           children:const [
             GreetingHeader(name: 'Babe'),
             SizedBox(height: 24,),
