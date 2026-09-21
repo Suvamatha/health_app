@@ -4,7 +4,7 @@ import '../../../widgets/dashboard_card.dart';
 class HydrationCard extends StatefulWidget {
   final int goalGlasses;
 
-  const HydrationCard({this.goalGlasses = 8,super.key});
+  const HydrationCard({required this.goalGlasses,super.key});
 
   @override
   State<HydrationCard> createState() => _HydrationCardState();

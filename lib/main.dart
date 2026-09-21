@@ -20,7 +20,7 @@ class WellnessApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const DashboardScreen(),
+      home: const CycleScreen(),
     );
   }
 }

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:healthtracker/core/theme/app_spacing.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../models/user_profile.dart';
 import 'widgets/greeting_header.dart';
-import 'widgets/cycle_card.dart';
 import 'widgets/hydration_card.dart';
 import 'widgets/mood_card.dart';
+import 'widgets/cycle_card.dart';
 import 'widgets/streak_banner.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
+
+  static const _dummyProfile = UserProfile(
+    name: 'Babe',
+    dailyHydrationGoalGlasses: 8,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -15,27 +21,20 @@ class DashboardScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           padding: AppSpacing.screenPadding(context),
-          children:const [
-            GreetingHeader(name: 'Babe'),
-            SizedBox(height: 24,),
-            // Row(
-            //   children: [
-            //     Expanded(child: HydrationCard()),
-            //     SizedBox(width: 12,),
-            //     Expanded(child: MoodCard()),
-            //   ],
-            // ),
+          children: [
+            GreetingHeader(name: _dummyProfile.name),
+            const SizedBox(height: 24),
             Column(
               children: [
-                HydrationCard(),
-                SizedBox(height: 12,),
-                MoodCard(),
+                HydrationCard(goalGlasses: _dummyProfile.dailyHydrationGoalGlasses),
+                const SizedBox(height: 12),
+                const MoodCard(),
               ],
             ),
-            SizedBox(height: 12,),
-            CycleCard(),
-            SizedBox(height: 12,),
-            StreakBanner(),
+            const SizedBox(height: 12),
+            const CycleCard(),
+            const SizedBox(height: 12),
+            const StreakBanner(),
           ],
         ),
       ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:healthtracker/core/theme/app_spacing.dart';
+import 'package:healthtracker/models/symptom.dart';
 import '../../widgets/dashboard_card.dart';
 import 'widgets/cycle_calendar.dart';
 import 'widgets/symptom_chip.dart';
@@ -11,18 +13,10 @@ class CycleScreen extends StatefulWidget {
 }
 
 class _CycleScreenState extends State<CycleScreen> {
-  final Set<String> _selectedSymptoms = {};
+  final Set<Symptom> _selectedSymptoms = {};
 
-  static const List<String> _availableSymptoms = [
-    'Cramps',
-    'Headache',
-    'Fatigue',
-    'Bloating',
-    'Mood swings',
-    'Backache',
-  ];
 
-  void _toggleSymptom(String symptom) {
+  void _toggleSymptom(Symptom symptom) {
     setState(() {
       if (_selectedSymptoms.contains(symptom)) {
         _selectedSymptoms.remove(symptom);
@@ -39,7 +33,7 @@ class _CycleScreenState extends State<CycleScreen> {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: AppSpacing.screenPadding(context),
           children: [
             Text('Cycle', style: theme.textTheme.displayLarge),
             const SizedBox(height: 20),
@@ -63,9 +57,9 @@ class _CycleScreenState extends State<CycleScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _availableSymptoms.map((symptom) {
+              children: Symptom.values.map((symptom) {
                 return SymptomChip(
-                  label: symptom,
+                  label: symptom.label,
                   isSelected: _selectedSymptoms.contains(symptom),
                   onTap: () => _toggleSymptom(symptom),
                 );
@@ -77,3 +71,4 @@ class _CycleScreenState extends State<CycleScreen> {
     );
   }
 }
+
