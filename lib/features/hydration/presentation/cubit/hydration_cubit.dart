@@ -4,10 +4,10 @@ import '../../domain/entities/hydration_entry.dart';
 import '../../domain/repositories/hydration_repository.dart';
 import 'hydration_state.dart';
 
-class HydrationCubit extends Cubit <HydrationState {
+class HydrationCubit extends Cubit<HydrationState> {
   final HydrationRepository _repository;
 
-  HydrationCubit(this._repository): super (const HydrationState());
+  HydrationCubit(this._repository) : super(const HydrationState());
 
   Future<void> loadTodayEntries() async {
     final entries = await _repository.getTodayEntries();
@@ -17,11 +17,12 @@ class HydrationCubit extends Cubit <HydrationState {
     ));
   }
 
-  Future <void> addGlass() async {
+  Future<void> addGlass() async {
     final newEntry = HydrationEntry(
-      id:  const Uuid().v4(),
+      id: const Uuid().v4(),
       loggedAt: DateTime.now(),
     );
+
     await _repository.addEntry(newEntry);
     await loadTodayEntries();
   }
