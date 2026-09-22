@@ -9,7 +9,7 @@ import 'package:healthtracker/features/mood/data/repositories/mood_repository_im
 import 'package:healthtracker/features/mood/presentation/cubit/mood_cubit.dart';
 import 'package:healthtracker/features/mood/presentation/widgets/mood_card.dart';
 import 'widgets/greeting_header.dart';
-import 'widgets/cycle_card.dart';
+import '../../features/period/presentation/widgets/cycle_card.dart';
 import 'widgets/streak_banner.dart';
 
 class DashboardScreen extends StatelessWidget {

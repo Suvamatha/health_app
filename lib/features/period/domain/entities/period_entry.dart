@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'symptom.dart';
+import '../../../../models/symptom.dart';
 
 part 'period_entry.freezed.dart';
 part 'period_entry.g.dart';
@@ -8,7 +8,7 @@ part 'period_entry.g.dart';
 class PeriodEntry with _$PeriodEntry {
   const factory PeriodEntry ({
     required String id,
-    required DateTime data,
+    required DateTime date,
     @Default([]) List <Symptom> symptoms,
   }) = _PeriodEntry;
 

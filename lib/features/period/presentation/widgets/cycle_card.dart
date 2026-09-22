@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/dashboard_card.dart';
+import '../../../../widgets/dashboard_card.dart';
 
 class CycleCard extends StatelessWidget {
   final int currentCycleDay;

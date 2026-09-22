@@ -22,7 +22,7 @@ PeriodEntry _$PeriodEntryFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$PeriodEntry {
   String get id => throw _privateConstructorUsedError;
-  DateTime get data => throw _privateConstructorUsedError;
+  DateTime get date => throw _privateConstructorUsedError;
   List<Symptom> get symptoms => throw _privateConstructorUsedError;
 
   /// Serializes this PeriodEntry to a JSON map.
@@ -42,7 +42,7 @@ abstract class $PeriodEntryCopyWith<$Res> {
     $Res Function(PeriodEntry) then,
   ) = _$PeriodEntryCopyWithImpl<$Res, PeriodEntry>;
   @useResult
-  $Res call({String id, DateTime data, List<Symptom> symptoms});
+  $Res call({String id, DateTime date, List<Symptom> symptoms});
 }
 
 /// @nodoc
@@ -59,16 +59,16 @@ class _$PeriodEntryCopyWithImpl<$Res, $Val extends PeriodEntry>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? data = null, Object? symptoms = null}) {
+  $Res call({Object? id = null, Object? date = null, Object? symptoms = null}) {
     return _then(
       _value.copyWith(
             id: null == id
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            data: null == data
-                ? _value.data
-                : data // ignore: cast_nullable_to_non_nullable
+            date: null == date
+                ? _value.date
+                : date // ignore: cast_nullable_to_non_nullable
                       as DateTime,
             symptoms: null == symptoms
                 ? _value.symptoms
@@ -89,7 +89,7 @@ abstract class _$$PeriodEntryImplCopyWith<$Res>
   ) = __$$PeriodEntryImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, DateTime data, List<Symptom> symptoms});
+  $Res call({String id, DateTime date, List<Symptom> symptoms});
 }
 
 /// @nodoc
@@ -105,16 +105,16 @@ class __$$PeriodEntryImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? data = null, Object? symptoms = null}) {
+  $Res call({Object? id = null, Object? date = null, Object? symptoms = null}) {
     return _then(
       _$PeriodEntryImpl(
         id: null == id
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        data: null == data
-            ? _value.data
-            : data // ignore: cast_nullable_to_non_nullable
+        date: null == date
+            ? _value.date
+            : date // ignore: cast_nullable_to_non_nullable
                   as DateTime,
         symptoms: null == symptoms
             ? _value._symptoms
@@ -130,7 +130,7 @@ class __$$PeriodEntryImplCopyWithImpl<$Res>
 class _$PeriodEntryImpl implements _PeriodEntry {
   const _$PeriodEntryImpl({
     required this.id,
-    required this.data,
+    required this.date,
     final List<Symptom> symptoms = const [],
   }) : _symptoms = symptoms;
 
@@ -140,7 +140,7 @@ class _$PeriodEntryImpl implements _PeriodEntry {
   @override
   final String id;
   @override
-  final DateTime data;
+  final DateTime date;
   final List<Symptom> _symptoms;
   @override
   @JsonKey()
@@ -152,7 +152,7 @@ class _$PeriodEntryImpl implements _PeriodEntry {
 
   @override
   String toString() {
-    return 'PeriodEntry(id: $id, data: $data, symptoms: $symptoms)';
+    return 'PeriodEntry(id: $id, date: $date, symptoms: $symptoms)';
   }
 
   @override
@@ -161,7 +161,7 @@ class _$PeriodEntryImpl implements _PeriodEntry {
         (other.runtimeType == runtimeType &&
             other is _$PeriodEntryImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.data, data) || other.data == data) &&
+            (identical(other.date, date) || other.date == date) &&
             const DeepCollectionEquality().equals(other._symptoms, _symptoms));
   }
 
@@ -170,7 +170,7 @@ class _$PeriodEntryImpl implements _PeriodEntry {
   int get hashCode => Object.hash(
     runtimeType,
     id,
-    data,
+    date,
     const DeepCollectionEquality().hash(_symptoms),
   );
 
@@ -191,7 +191,7 @@ class _$PeriodEntryImpl implements _PeriodEntry {
 abstract class _PeriodEntry implements PeriodEntry {
   const factory _PeriodEntry({
     required final String id,
-    required final DateTime data,
+    required final DateTime date,
     final List<Symptom> symptoms,
   }) = _$PeriodEntryImpl;
 
@@ -201,7 +201,7 @@ abstract class _PeriodEntry implements PeriodEntry {
   @override
   String get id;
   @override
-  DateTime get data;
+  DateTime get date;
   @override
   List<Symptom> get symptoms;
 
