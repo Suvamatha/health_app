@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../dashboard/dashboard_screen.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/onboarding_page.dart';
 import '../../../widgets/page_inicator.dart';
 
@@ -60,9 +60,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _finishOnboarding() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const DashboardScreen()),
-    );
+    context.go('/dashboard');
   }
 
 @override
