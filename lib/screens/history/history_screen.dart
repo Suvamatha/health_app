@@ -1,7 +1,15 @@
+// lib/screens/history/history_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:healthtracker/core/theme/app_spacing.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:healthtracker/screens/history/widgets/data_strip.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../widgets/dashboard_card.dart';
+import '../../features/hydration/presentation/cubit/hydration_cubit.dart';
+import '../../features/mood/presentation/cubit/mood_cubit.dart';
+import '../../features/mood/domain/entities/mood_entry.dart';
+import '../../features/period/presentation/cubit/period_cubit.dart';
+import '../../features/period/presentation/cubit/period_state.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -13,18 +21,36 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   late DateTime _selectedDate;
   late List<DateTime> _recentDates;
+  Future<int>? _hydrationFuture;
+  Future<MoodEntry?>? _moodFuture;
+
+  static const int _dailyGoal = 8; 
+
+  static const List<String> _moodLabels = ['Low', 'Okay', 'Good', 'Great'];
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 
   @override
   void initState() {
     super.initState();
     final today = DateTime.now();
-    // Last 14 days, oldest first, so the strip reads left-to-right as
-    // past → today (today ends up as the last, rightmost item).
-    _recentDates = List.generate(
-      14,
-      (index) => today.subtract(Duration(days: 13 - index)),
-    );
+    _recentDates = List.generate(14, (index) => today.subtract(Duration(days: 13 - index)));
     _selectedDate = today;
+    _loadDataForSelectedDate();
+  }
+
+  void _loadDataForSelectedDate() {
+    setState(() {
+      _hydrationFuture = context.read<HydrationCubit>().getGlassesCountForDate(_selectedDate);
+      _moodFuture = context.read<MoodCubit>().getMoodForDate(_selectedDate);
+    });
+  }
+
+  void _onDateSelected(DateTime date) {
+    _selectedDate = date;
+    _loadDataForSelectedDate();
   }
 
   @override
@@ -41,7 +67,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             DateStrip(
               dates: _recentDates,
               selectedDate: _selectedDate,
-              onDateSelected: (date) => setState(() => _selectedDate = date),
+              onDateSelected: _onDateSelected,
             ),
             const SizedBox(height: 24),
             Text(
@@ -49,16 +75,49 @@ class _HistoryScreenState extends State<HistoryScreen> {
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 12),
-            // Dummy summary — placeholder values, not tied to _selectedDate yet
             DashboardCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _HistoryRow(icon: Icons.water_drop_outlined, label: 'Hydration', value: '6/8 glasses'),
+                  FutureBuilder<int>(
+                    future: _hydrationFuture,
+                    builder: (context, snapshot) {
+                      final value = snapshot.hasData
+                          ? '${snapshot.data}/$_dailyGoal glasses'
+                          : '...';
+                      return _HistoryRow(
+                        icon: Icons.water_drop_outlined,
+                        label: 'Hydration',
+                        value: value,
+                      );
+                    },
+                  ),
                   const SizedBox(height: 12),
-                  _HistoryRow(icon: Icons.favorite_outline, label: 'Mood', value: 'Good'),
+                  FutureBuilder<MoodEntry?>(
+                    future: _moodFuture,
+                    builder: (context, snapshot) {
+                      String value = '...';
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        final entry = snapshot.data;
+                        value = entry == null
+                            ? 'Not logged'
+                            : _moodLabels[entry.moodLevel - 1];
+                      }
+                      return _HistoryRow(icon: Icons.favorite_outline, label: 'Mood', value: value);
+                    },
+                  ),
                   const SizedBox(height: 12),
-                  _HistoryRow(icon: Icons.calendar_today_outlined, label: 'Cycle', value: 'Day 14 — Ovulation'),
+                  BlocBuilder<PeriodCubit, PeriodState>(
+                    builder: (context, state) {
+                      final loggedToday = state.entries
+                          .any((entry) => _isSameDay(entry.date, _selectedDate));
+                      return _HistoryRow(
+                        icon: Icons.calendar_today_outlined,
+                        label: 'Cycle',
+                        value: loggedToday ? 'Period day logged' : 'No entry',
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -69,8 +128,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-/// A single icon + label + value row inside the summary card.
-/// Private to this file (underscore prefix) since it's not reused elsewhere.
 class _HistoryRow extends StatelessWidget {
   final IconData icon;
   final String label;

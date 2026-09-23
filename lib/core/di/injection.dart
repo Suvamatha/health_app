@@ -9,13 +9,7 @@ import 'package:healthtracker/features/period/domain/repositories/period_reposit
 final getIt = GetIt.instance;
 
 void setupDependencies() {
-  getIt.registerLazySingleton<HydrationRepository>(
-  () => HydrationRepositoryImpl(),
-  );
-  getIt.registerLazySingleton<MoodRepository>(
-    () => MoodRepositoryImpl(),
-  );
-  getIt.registerLazySingleton<PeriodRepository>(
-    () => PeriodRepositoryImpl(),
-  );
+  getIt.registerLazySingleton<HydrationRepository>(() => HydrationRepositoryImpl());
+  getIt.registerLazySingleton<MoodRepository>(() => MoodRepositoryImpl());
+  getIt.registerLazySingleton<PeriodRepository>(() => PeriodRepositoryImpl());
 }

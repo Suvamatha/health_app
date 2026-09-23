@@ -26,4 +26,8 @@ class MoodCubit extends Cubit<MoodState>{
     await _repository.saveTodayEntry(entry);
     await loadTodayEntry();
   }
+
+  Future<MoodEntry?> getMoodForDate(DateTime date) async {
+    return _repository.getEntryForDate(date);
+  }
 }

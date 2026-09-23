@@ -26,4 +26,8 @@ class HydrationCubit extends Cubit<HydrationState> {
     await _repository.addEntry(newEntry);
     await loadTodayEntries();
   }
+  Future <int> getGlassesCountForDate(DateTime date) async {
+    final entries = await _repository.getEntriesForDate(date);
+    return entries.length;
+  }
 }
