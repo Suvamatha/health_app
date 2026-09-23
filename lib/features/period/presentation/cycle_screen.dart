@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:healthtracker/features/gamification/presentation/cubit/gamification_cubit.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../widgets/dashboard_card.dart';
 import '../../../models/symptom.dart';
@@ -42,7 +43,10 @@ class CycleScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: () => context.read<PeriodCubit>().logPeriodDay(now),
+                    onPressed: () {
+                      context.read<PeriodCubit>().logPeriodDay(now);
+                      context.read<GamificationCubit>().recordCheckIn();
+                    },
                     style: FilledButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       padding: const EdgeInsets.symmetric(vertical: 16),

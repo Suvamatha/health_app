@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:healthtracker/features/gamification/presentation/cubit/gamification_cubit.dart';
 import '../../../../widgets/dashboard_card.dart';
 import '../cubit/mood_cubit.dart';
 import '../cubit/mood_state.dart';
@@ -38,7 +39,10 @@ class MoodCard extends StatelessWidget {
                   final level = index + 1; // levels are 1-4, indices are 0-3
                   final isSelected = state.selectedMoodLevel == level;
                   return GestureDetector(
-                    onTap: () => context.read<MoodCubit>().selectMood(level),
+                    onTap: () {
+                      context.read<MoodCubit>().selectMood(level);
+                      context.read<GamificationCubit>().recordCheckIn();
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.all(8),

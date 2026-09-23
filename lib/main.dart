@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:healthtracker/core/notifications/notification_service.dart';
+import 'package:healthtracker/features/gamification/data/repositories/gamification_repository_impl.dart';
+import 'package:healthtracker/features/gamification/presentation/cubit/gamification_cubit.dart';
 import 'package:healthtracker/features/hydration/domain/repositories/hydration_repository.dart';
 import 'package:healthtracker/features/hydration/presentation/cubit/hydration_cubit.dart';
 import 'package:healthtracker/features/mood/domain/repositories/mood_repository.dart';
@@ -16,9 +19,10 @@ import 'package:healthtracker/features/period/presentation/cubit/period_cubit.da
 import 'core/di/injection.dart';
 
 
-void main() {
+Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
   setupDependencies();
+  await getIt<NotificationService>().initialize();
   runApp(const WellnessApp());
 }
 
@@ -38,6 +42,9 @@ class WellnessApp extends StatelessWidget {
         BlocProvider(
           create: (context) => PeriodCubit(getIt<PeriodRepository>())..loadEntries(),
         ),
+        BlocProvider(
+          create: (context) => GamificationCubit(getIt<GamificationRepositoryImpl>())..loadProfile(),
+        )
       ],
       child: MaterialApp.router(
         title: 'Wellness Appp',

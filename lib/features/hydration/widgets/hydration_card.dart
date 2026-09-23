@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:healthtracker/features/gamification/presentation/cubit/gamification_cubit.dart';
 import 'package:healthtracker/features/hydration/presentation/cubit/hydration_cubit.dart';
 import 'package:healthtracker/features/hydration/presentation/cubit/hydration_state.dart';
 import '../../../../widgets/dashboard_card.dart';
@@ -61,7 +62,10 @@ class HydrationCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => context.read<HydrationCubit>().addGlass(),
+                  onPressed: () {
+                    context.read<HydrationCubit>().addGlass();
+                    context.read<GamificationCubit>().recordCheckIn();
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: theme.colorScheme.primary,
                     side: BorderSide(color: theme.colorScheme.primary),

@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import 'package:healthtracker/core/notifications/notification_service.dart';
+import 'package:healthtracker/features/gamification/data/repositories/gamification_repository_impl.dart';
 import 'package:healthtracker/features/hydration/data/repositories/hydration_repository_impl.dart';
 import 'package:healthtracker/features/hydration/domain/repositories/hydration_repository.dart';
 import 'package:healthtracker/features/mood/data/repositories/mood_repository_impl.dart';
@@ -12,4 +14,6 @@ void setupDependencies() {
   getIt.registerLazySingleton<HydrationRepository>(() => HydrationRepositoryImpl());
   getIt.registerLazySingleton<MoodRepository>(() => MoodRepositoryImpl());
   getIt.registerLazySingleton<PeriodRepository>(() => PeriodRepositoryImpl());
+  getIt.registerLazySingleton<NotificationService>(() => NotificationService());
+  getIt.registerLazySingleton<GamificationRepositoryImpl>(() => GamificationRepositoryImpl());
 }
