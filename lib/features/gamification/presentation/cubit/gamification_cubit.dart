@@ -33,13 +33,18 @@ class GamificationCubit extends Cubit<GamificationState> {
     final alreadyCheckedInToday = current.lastCheckInDate != null &&
         _isSameDay(current.lastCheckInDate!, now);
 
-    int newStreak = current.currentStreak;
-    if (!alreadyCheckedInToday) {
-      if (current.lastCheckInDate != null && _isYesterday(current.lastCheckInDate!, now)) {
-        newStreak = current.currentStreak + 1; // continuing an unbroken streak
-      } else {
-        newStreak = 1; // streak broke (or this is the very first check-in ever) — restart at 1
-      }
+    // Already checked in today: mood/sleep/hydration/period logging can
+    // all call recordCheckIn(), and the same screen can be tapped many
+    // times in a row (dragging the sleep slider, re-picking a mood).
+    // Bail out immediately so XP and streak are only ever touched ONCE
+    // per calendar day, no matter how many times this is called.
+    if (alreadyCheckedInToday) return;
+
+    final int newStreak;
+    if (current.lastCheckInDate != null && _isYesterday(current.lastCheckInDate!, now)) {
+      newStreak = current.currentStreak + 1; // continuing an unbroken streak
+    } else {
+      newStreak = 1; // streak broke (or this is the very first check-in ever) — restart at 1
     }
 
     final updated = current.copyWith(

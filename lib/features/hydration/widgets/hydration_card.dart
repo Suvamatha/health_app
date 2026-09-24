@@ -10,6 +10,73 @@ import '../../../../widgets/dashboard_card.dart';
 class HydrationCard extends StatelessWidget {
   const HydrationCard({super.key});
 
+  Future<void> _editGoal(BuildContext context, int currentGoal) async {
+    final cubit = context.read<HydrationCubit>();
+    var draft = currentGoal;
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              title: const Text('Daily hydration goal'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'How many glasses of water a day feels right for you?',
+                    style: Theme.of(dialogContext).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: draft > 1
+                            ? () => setDialogState(() => draft -= 1)
+                            : null,
+                        icon: const Icon(Icons.remove_circle_outline),
+                      ),
+                      SizedBox(
+                        width: 64,
+                        child: Text(
+                          '$draft',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(dialogContext).textTheme.displayMedium,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: draft < 20
+                            ? () => setDialogState(() => draft += 1)
+                            : null,
+                        icon: const Icon(Icons.add_circle_outline),
+                      ),
+                    ],
+                  ),
+                  Text('glasses / day', style: Theme.of(dialogContext).textTheme.bodySmall),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(draft),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null && result != currentGoal) {
+      await cubit.setDailyGoal(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -70,7 +137,16 @@ class HydrationCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: () => _editGoal(context, state.dailyGoal),
+                tooltip: 'Change daily goal',
+                icon: Icon(
+                  Icons.edit_outlined,
+                  size: 18,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
               _AddGlassButton(
                 onTap: () {
                   context.read<HydrationCubit>().addGlass();

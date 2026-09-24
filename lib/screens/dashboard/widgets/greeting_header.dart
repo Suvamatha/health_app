@@ -1,13 +1,38 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class GreetingHeader extends StatelessWidget {
-  final String name;
+import '../../../core/profile/profile_prefs.dart';
 
-  const GreetingHeader({
-    required this.name,
-    super.key,
-  });
+/// Reads the saved profile itself (name + photo) so every screen that
+/// shows this header always reflects the latest edits made from the
+/// Profile screen, without the dashboard having to know the details.
+class GreetingHeader extends StatefulWidget {
+  const GreetingHeader({super.key});
+
+  @override
+  State<GreetingHeader> createState() => _GreetingHeaderState();
+}
+
+class _GreetingHeaderState extends State<GreetingHeader> {
+  String _name = 'there';
+  String? _avatarPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await ProfilePrefs.load();
+    if (!mounted) return;
+    setState(() {
+      _name = profile.name;
+      _avatarPath = profile.avatarPath;
+    });
+  }
 
   String get _greeting {
     final hour = DateTime.now().hour;
@@ -47,7 +72,7 @@ class GreetingHeader extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text('$_greeting,', style: theme.textTheme.bodyMedium),
-              Text(name, style: theme.textTheme.displayLarge),
+              Text(_name, style: theme.textTheme.displayLarge),
             ],
           ),
         ),
@@ -57,18 +82,26 @@ class GreetingHeader extends StatelessWidget {
               onPressed: () => context.push('/settings'),
               icon: Icon(Icons.settings_outlined, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
-            Container(
-              padding: const EdgeInsets.all(2.5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+            GestureDetector(
+              onTap: () => context.push('/profile').then((_) => _loadProfile()),
+              child: Container(
+                padding: const EdgeInsets.all(2.5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                  ),
                 ),
-              ),
-              child: CircleAvatar(
-                radius: 24,
-                backgroundColor: theme.colorScheme.surface,
-                child: Icon(Icons.person_outline, color: theme.colorScheme.primary),
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: theme.colorScheme.surface,
+                  backgroundImage: (_avatarPath != null && File(_avatarPath!).existsSync())
+                      ? FileImage(File(_avatarPath!))
+                      : null,
+                  child: (_avatarPath != null && File(_avatarPath!).existsSync())
+                      ? null
+                      : Icon(Icons.person_outline, color: theme.colorScheme.primary),
+                ),
               ),
             ),
           ],

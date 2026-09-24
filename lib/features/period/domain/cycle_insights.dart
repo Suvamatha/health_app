@@ -76,13 +76,6 @@ class CycleInsights {
   CycleInsights._();
 
   static const int defaultCycleLength = 28;
-
-  // `defaultCycleLength.toDouble()` is a method call, which Dart does not
-  // allow inside a `const` expression. This double literal must stay in
-  // sync with [defaultCycleLength] so the const "no data" prediction below
-  // can use it directly.
-  static const double _defaultCycleLengthAsDouble = 28.0;
-
   static const int defaultPeriodLength = 5;
   // The luteal phase (ovulation -> next period) is far more consistent
   // across cycle lengths than the follicular phase, so it's the standard
@@ -140,10 +133,10 @@ class CycleInsights {
     final starts = cycleStartDates(entries);
 
     if (starts.isEmpty) {
-      return const CyclePrediction(
+      return  CyclePrediction(
         lastPeriodStart: null,
         currentCycleDay: 0,
-        averageCycleLength: _defaultCycleLengthAsDouble,
+        averageCycleLength: defaultCycleLength.toDouble(),
         predictedLowDaysFromToday: 0,
         predictedHighDaysFromToday: 0,
         predictedNextStart: null,

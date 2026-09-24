@@ -40,94 +40,100 @@ class _HydrationWeeklyChartState extends State<HydrationWeeklyChart> {
     final theme = Theme.of(context);
     final counts = _glassesByDay;
 
-    return BlocBuilder<HydrationCubit, HydrationState>(
-      builder: (context, state) {
-        return DashboardCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.water_drop_outlined, color: theme.colorScheme.primary, size: 20),
-                  const SizedBox(width: 8),
-                  Text('This week', style: theme.textTheme.labelLarge),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (counts == null)
-                const SizedBox(
-                  height: 96,
-                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                )
-              else
-                SizedBox(
-                  height: 96,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: List.generate(7, (i) {
-                      final count = counts[i];
-                      final ratio = (count / state.dailyGoal).clamp(0.0, 1.0);
-                      final reachedGoal = count >= state.dailyGoal;
-                      final isToday = i == 6;
+    return BlocListener<HydrationCubit, HydrationState>(
+      // The 7-day bars were only ever computed once in initState, so a
+      // newly logged glass didn't move the chart until the screen was
+      // reopened. Re-fetch every time hydration state changes.
+      listener: (_, __) => _load(),
+      child: BlocBuilder<HydrationCubit, HydrationState>(
+        builder: (context, state) {
+          return DashboardCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.water_drop_outlined, color: theme.colorScheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text('This week', style: theme.textTheme.labelLarge),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                if (counts == null)
+                  const SizedBox(
+                    height: 96,
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                else
+                  SizedBox(
+                    height: 96,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: List.generate(7, (i) {
+                        final count = counts[i];
+                        final ratio = (count / state.dailyGoal).clamp(0.0, 1.0);
+                        final reachedGoal = count >= state.dailyGoal;
+                        final isToday = i == 6;
 
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                '$count',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '$count',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: FractionallySizedBox(
-                                    heightFactor: ratio == 0 ? 0.03 : ratio,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: reachedGoal
-                                              ? [theme.colorScheme.primary, theme.colorScheme.secondary]
-                                              : [
-                                                  theme.colorScheme.primary.withValues(alpha: 0.55),
-                                                  theme.colorScheme.primary.withValues(alpha: 0.35),
-                                                ],
+                                const SizedBox(height: 4),
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: FractionallySizedBox(
+                                      heightFactor: ratio == 0 ? 0.03 : ratio,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(6),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: reachedGoal
+                                                ? [theme.colorScheme.primary, theme.colorScheme.secondary]
+                                                : [
+                                                    theme.colorScheme.primary.withValues(alpha: 0.55),
+                                                    theme.colorScheme.primary.withValues(alpha: 0.35),
+                                                  ],
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _dayLabels[i],
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                                  color: isToday
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _dayLabels[i],
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                                    color: isToday
+                                        ? theme.colorScheme.primary
+                                        : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ),
                   ),
-                ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

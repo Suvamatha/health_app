@@ -5,6 +5,8 @@ import '../../domain/repositories/hydration_repository.dart';
 
 class HydrationRepositoryImpl implements HydrationRepository {
   static const _key = 'hydration_entries';
+  static const _goalKey = 'hydration_daily_goal';
+  static const _defaultGoal = 8;
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -38,5 +40,17 @@ class HydrationRepositoryImpl implements HydrationRepository {
     final all = await _readAllEntries();
     all.add(entry);
     await _writeAllEntries(all);
+  }
+
+  @override
+  Future<int> getDailyGoal() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_goalKey) ?? _defaultGoal;
+  }
+
+  @override
+  Future<void> setDailyGoal(int goal) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_goalKey, goal);
   }
 }

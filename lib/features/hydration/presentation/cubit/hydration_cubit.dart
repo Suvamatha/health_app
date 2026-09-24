@@ -11,9 +11,11 @@ class HydrationCubit extends Cubit<HydrationState> {
 
   Future<void> loadTodayEntries() async {
     final entries = await _repository.getTodayEntries();
+    final goal = await _repository.getDailyGoal();
     emit(state.copyWith(
       isLoading: false,
       glassesLoggedToday: entries.length,
+      dailyGoal: goal,
     ));
   }
 
@@ -26,8 +28,14 @@ class HydrationCubit extends Cubit<HydrationState> {
     await _repository.addEntry(newEntry);
     await loadTodayEntries();
   }
-  Future <int> getGlassesCountForDate(DateTime date) async {
+
+  Future<int> getGlassesCountForDate(DateTime date) async {
     final entries = await _repository.getEntriesForDate(date);
     return entries.length;
+  }
+
+  Future<void> setDailyGoal(int goal) async {
+    await _repository.setDailyGoal(goal);
+    emit(state.copyWith(dailyGoal: goal));
   }
 }

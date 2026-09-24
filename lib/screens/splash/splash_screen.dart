@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:healthtracker/core/onboarding/onboarding_prefs.dart';
+import '../../core/onboarding/onboarding_prefs.dart';
 import '../../core/theme/app_gradients.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -45,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final hasOnboarded = await OnboardingPrefs.hasCompletedOnboarding();
       if (!mounted) return;
       context.go(hasOnboarded ? '/dashboard' : '/onboarding');
-});
+    });
   }
 
   @override

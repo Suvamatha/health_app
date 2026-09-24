@@ -7,6 +7,10 @@ import '../../features/period/presentation/cycle_screen.dart';
 import '../../screens/history/history_screen.dart';
 import '../../screens/insights/insights_screen.dart';
 import '../../screens/setting/settings_screen.dart';
+import '../../screens/notifications/notifications_screen.dart';
+import '../../screens/appearance/appearance_screen.dart';
+import '../../screens/privacy/privacy_screen.dart';
+import '../../screens/profile/profile_screen.dart';
 import '../navigation/scaffold_with_nav_bar.dart';
 
 final appRouter = GoRouter(
@@ -23,6 +27,22 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/appearance',
+      builder: (context, state) => const AppearanceScreen(),
+    ),
+    GoRoute(
+      path: '/privacy',
+      builder: (context, state) => const PrivacyScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
     ),
 
     StatefulShellRoute.indexedStack(

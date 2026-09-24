@@ -12,45 +12,56 @@ class DateStrip extends StatefulWidget {
     required this.onDateSelected,
   });
 
-  static const _weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
   @override
   State<DateStrip> createState() => _DateStripState();
 }
 
 class _DateStripState extends State<DateStrip> {
-  final ScrollController _scrollController =ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
-  @override 
+  @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-    });
+    // Dates are ordered oldest -> newest (today is the last / rightmost
+    // item). Jump to the end on first frame so today is visible without
+    // the user needing to scroll right first; they can then scroll left
+    // to look back at earlier days.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToEnd());
   }
+
+  void _scrollToEnd() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  static const _weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   @override
   void dispose() {
-    super.dispose();
     _scrollController.dispose();
-  }
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dates = widget.dates;
+    final selectedDate = widget.selectedDate;
 
     return SizedBox(
       height: 76,
       child: ListView.separated(
+        controller: _scrollController,
         scrollDirection: Axis.horizontal,
-        itemCount: widget.dates.length,
+        itemCount: dates.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final date = widget.dates[index];
-          final isSelected = _isSameDay(date, widget.selectedDate);
+          final date = dates[index];
+          final isSelected = _isSameDay(date, selectedDate);
 
           return GestureDetector(
             onTap: () => widget.onDateSelected(date),
@@ -72,7 +83,7 @@ class _DateStripState extends State<DateStrip> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateStrip._weekdayLabels[date.weekday - 1],
+                    _weekdayLabels[date.weekday - 1],
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: isSelected
                           ? Colors.white.withValues(alpha: 0.85)

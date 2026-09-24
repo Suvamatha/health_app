@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:healthtracker/core/onboarding/onboarding_prefs.dart';
+import '../../../core/onboarding/onboarding_prefs.dart';
 import '../widgets/onboarding_page.dart';
 import '../../../widgets/page_inicator.dart';
 
@@ -58,9 +58,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finishOnboarding() async {
+    // Persist completion first so the splash screen never sends the user
+    // back here after a fresh app launch.
     await OnboardingPrefs.setCompleted();
     if (mounted) context.go('/dashboard');
-}
+  }
 
   @override
   void dispose() {

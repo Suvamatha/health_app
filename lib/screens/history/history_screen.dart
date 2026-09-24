@@ -2,17 +2,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:healthtracker/screens/history/history_summary_stats.dart';
 import 'package:healthtracker/screens/history/widgets/data_strip.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/dashboard_card.dart';
 import '../../features/hydration/presentation/cubit/hydration_cubit.dart';
+import '../../features/hydration/presentation/cubit/hydration_state.dart';
 import '../../features/journal/presentation/widgets/journal_note_field.dart';
 import '../../features/mood/presentation/cubit/mood_cubit.dart';
+import '../../features/mood/presentation/cubit/mood_state.dart';
 import '../../features/mood/domain/entities/mood_entry.dart';
 import '../../features/period/presentation/cubit/period_cubit.dart';
 import '../../features/period/presentation/cubit/period_state.dart';
-import '../../features/hydration/presentation/cubit/hydration_state.dart';
-import '../../features/mood/presentation/cubit/mood_state.dart';
+import '../../features/sleep/domain/sleep_entry.dart';
+import '../../features/sleep/presentation/cubit/sleep_cubit.dart';
+import '../../features/sleep/presentation/cubit/sleep_state.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -26,8 +30,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   late List<DateTime> _recentDates;
   Future<int>? _hydrationFuture;
   Future<MoodEntry?>? _moodFuture;
-
-  static const int _dailyGoal = 8;
+  Future<SleepEntry?>? _sleepFuture;
 
   static const List<String> _moodLabels = ['Low', 'Okay', 'Good', 'Great'];
 
@@ -52,6 +55,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     setState(() {
       _hydrationFuture = context.read<HydrationCubit>().getGlassesCountForDate(_selectedDate);
       _moodFuture = context.read<MoodCubit>().getMoodForDate(_selectedDate);
+      _sleepFuture = context.read<SleepCubit>().getEntryForDate(_selectedDate);
     });
   }
 
@@ -64,18 +68,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // The History tab lives inside a StatefulShellRoute (IndexedStack), so
+    // this State object is never disposed when you switch tabs — it just
+    // gets hidden. That means the FutureBuilders below were only ever
+    // fetched once, in initState(), and never refreshed after you logged a
+    // mood/hydration/sleep entry from the Dashboard tab. These listeners
+    // re-fetch for the currently selected date whenever the shared cubits
+    // emit a new state, so History always reflects the latest logged data.
     return MultiBlocListener(
       listeners: [
-      BlocListener<MoodCubit, MoodState>(
-        listenWhen: (prev, curr) => prev.selectedMoodLevel != curr.selectedMoodLevel,
-        listener: (context, state) => _loadDataForSelectedDate(),
-      ),
-      BlocListener<HydrationCubit, HydrationState>(
-        listenWhen: (prev, curr) => prev.glassesLoggedToday != curr.glassesLoggedToday,
-        listener: (context, state) => _loadDataForSelectedDate(),
-      ),
-    ], 
-    child: Scaffold(
+        BlocListener<MoodCubit, MoodState>(
+          listenWhen: (previous, current) =>
+              previous.selectedMoodLevel != current.selectedMoodLevel,
+          listener: (context, state) => _loadDataForSelectedDate(),
+        ),
+        BlocListener<HydrationCubit, HydrationState>(
+          listenWhen: (previous, current) =>
+              previous.glassesLoggedToday != current.glassesLoggedToday,
+          listener: (context, state) => _loadDataForSelectedDate(),
+        ),
+        BlocListener<SleepCubit, SleepState>(
+          listenWhen: (previous, current) =>
+              previous.hoursLogged != current.hoursLogged || previous.quality != current.quality,
+          listener: (context, state) => _loadDataForSelectedDate(),
+        ),
+      ],
+      child: Scaffold(
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -100,17 +118,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  FutureBuilder<int>(
-                    future: _hydrationFuture,
-                    builder: (context, snapshot) {
-                      final value = snapshot.hasData
-                          ? '${snapshot.data}/$_dailyGoal glasses'
-                          : '...';
-                      return _HistoryRow(
-                        icon: Icons.water_drop_outlined,
-                        label: 'Hydration',
-                        value: value,
+                  BlocBuilder<HydrationCubit, HydrationState>(
+                    builder: (context, hydrationState) {
+                      return FutureBuilder<int>(
+                        future: _hydrationFuture,
+                        builder: (context, snapshot) {
+                          final value = snapshot.hasData
+                              ? '${snapshot.data}/${hydrationState.dailyGoal} glasses'
+                              : '...';
+                          return _HistoryRow(
+                            icon: Icons.water_drop_outlined,
+                            label: 'Hydration',
+                            value: value,
+                          );
+                        },
                       );
+                    },
+                  ),
+                  const Divider(height: 28),
+                  FutureBuilder<SleepEntry?>(
+                    future: _sleepFuture,
+                    builder: (context, snapshot) {
+                      String value = '...';
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        final entry = snapshot.data;
+                        value = entry == null
+                            ? 'Not logged'
+                            : '${entry.hours.toStringAsFixed(1)}h · ${entry.quality.label}';
+                      }
+                      return _HistoryRow(icon: Icons.bedtime_outlined, label: 'Sleep', value: value);
                     },
                   ),
                   const Divider(height: 28),
@@ -143,12 +179,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            const HistorySummaryStats(),
+            const SizedBox(height: 16),
             JournalNoteField(date: _selectedDate),
             const SizedBox(height: 96),
           ],
         ),
       ),
-    ),
+      ),
     );
   }
 }
