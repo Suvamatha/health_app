@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healthtracker/core/onboarding/onboarding_prefs.dart';
 import '../widgets/onboarding_page.dart';
 import '../../../widgets/page_inicator.dart';
 
@@ -56,9 +57,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _finishOnboarding() {
-    context.go('/dashboard');
-  }
+  Future<void> _finishOnboarding() async {
+    await OnboardingPrefs.setCompleted();
+    if (mounted) context.go('/dashboard');
+}
 
   @override
   void dispose() {

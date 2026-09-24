@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class DateStrip extends StatelessWidget {
+class DateStrip extends StatefulWidget {
   final List<DateTime> dates;
   final DateTime selectedDate;
   final ValueChanged<DateTime> onDateSelected;
@@ -12,11 +12,31 @@ class DateStrip extends StatelessWidget {
     required this.onDateSelected,
   });
 
+  static const _weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  @override
+  State<DateStrip> createState() => _DateStripState();
+}
+
+class _DateStripState extends State<DateStrip> {
+  final ScrollController _scrollController =ScrollController();
+
+  @override 
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
-
-  static const _weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +46,14 @@ class DateStrip extends StatelessWidget {
       height: 76,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: dates.length,
+        itemCount: widget.dates.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final date = dates[index];
-          final isSelected = _isSameDay(date, selectedDate);
+          final date = widget.dates[index];
+          final isSelected = _isSameDay(date, widget.selectedDate);
 
           return GestureDetector(
-            onTap: () => onDateSelected(date),
+            onTap: () => widget.onDateSelected(date),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 54,
@@ -52,7 +72,7 @@ class DateStrip extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _weekdayLabels[date.weekday - 1],
+                    DateStrip._weekdayLabels[date.weekday - 1],
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: isSelected
                           ? Colors.white.withValues(alpha: 0.85)

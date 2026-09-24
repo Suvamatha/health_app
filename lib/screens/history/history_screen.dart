@@ -11,6 +11,8 @@ import '../../features/mood/presentation/cubit/mood_cubit.dart';
 import '../../features/mood/domain/entities/mood_entry.dart';
 import '../../features/period/presentation/cubit/period_cubit.dart';
 import '../../features/period/presentation/cubit/period_state.dart';
+import '../../features/hydration/presentation/cubit/hydration_state.dart';
+import '../../features/mood/presentation/cubit/mood_state.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -62,7 +64,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
+    return MultiBlocListener(
+      listeners: [
+      BlocListener<MoodCubit, MoodState>(
+        listenWhen: (prev, curr) => prev.selectedMoodLevel != curr.selectedMoodLevel,
+        listener: (context, state) => _loadDataForSelectedDate(),
+      ),
+      BlocListener<HydrationCubit, HydrationState>(
+        listenWhen: (prev, curr) => prev.glassesLoggedToday != curr.glassesLoggedToday,
+        listener: (context, state) => _loadDataForSelectedDate(),
+      ),
+    ], 
+    child: Scaffold(
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -135,6 +148,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

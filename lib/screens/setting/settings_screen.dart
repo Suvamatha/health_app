@@ -1,7 +1,6 @@
-// lib/screens/settings/settings_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:healthtracker/core/notifications/hydration_reminder_prefs.dart';
 import '../../core/di/injection.dart';
 import '../../core/notifications/notification_service.dart';
 import '../../core/theme/app_radius.dart';
@@ -22,6 +21,22 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+
+  @override
+void initState() {
+  super.initState();
+  _loadSavedReminderPrefs();
+}
+
+Future<void> _loadSavedReminderPrefs() async {
+  final saved = await HydrationReminderPrefs.load();
+  if (!mounted) return;
+  setState(() {
+    _remindersEnabled = saved.enabled;
+    _reminderTime = TimeOfDay(hour: saved.hour, minute: saved.minute);
+  });
+}
+
   bool _remindersEnabled = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 10, minute: 0);
   bool _isExporting = false;
@@ -63,7 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final moodEntries = await context.read<MoodCubit>().getAllEntries();
       final sleepEntries = await context.read<SleepCubit>().getAllEntries();
 
-      await DataExportService().copyCsvToClipboard(
+      await DataExportService().copyReportToClipboard(
         periodEntries: periodEntries,
         moodEntries: moodEntries,
         sleepEntries: sleepEntries,

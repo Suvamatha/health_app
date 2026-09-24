@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healthtracker/core/onboarding/onboarding_prefs.dart';
 import '../../core/theme/app_gradients.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -39,9 +40,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2200), () {
-      if (mounted) context.go('/onboarding');
-    });
+    Future.delayed(const Duration(milliseconds: 2200), () async {
+      if (!mounted) return;
+      final hasOnboarded = await OnboardingPrefs.hasCompletedOnboarding();
+      if (!mounted) return;
+      context.go(hasOnboarded ? '/dashboard' : '/onboarding');
+});
   }
 
   @override
