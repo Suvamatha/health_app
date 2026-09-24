@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../widgets/dashboard_card.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../features/gamification/presentation/cubit/gamification_cubit.dart';
 import '../../../features/gamification/presentation/cubit/gamification_state.dart';
 import '../../../features/gamification/domain/rank.dart';
 
 /// Shows current streak + Rank, reading live from GamificationCubit.
-/// Gold accent color still appears ONLY here, on the dashboard — same
-/// "scarce accent = feels earned" reasoning from Phase 2's design system.
+/// Wrapped in a warm gold gradient — the ONE gradient moment on the
+/// dashboard, so an earned streak still feels special rather than routine.
+/// Same "scarce accent = feels earned" reasoning from Phase 2's design system.
 class StreakBanner extends StatelessWidget {
   const StreakBanner({super.key});
 
@@ -24,12 +25,38 @@ class StreakBanner extends StatelessWidget {
         final profile = state.profile!;
         final rank = Rank.fromXp(profile.totalXp);
 
-        return DashboardCard(
-          backgroundColor: theme.colorScheme.tertiary.withValues(alpha: 0.12),
+        return Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.tertiary.withValues(alpha: 0.85),
+                theme.colorScheme.tertiary.withValues(alpha: 0.55),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.tertiary.withValues(alpha: 0.28),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Row(
             children: [
-              Icon(Icons.local_fire_department_outlined, color: theme.colorScheme.tertiary),
-              const SizedBox(width: 12),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.local_fire_department, color: Colors.white),
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,12 +65,12 @@ class StreakBanner extends StatelessWidget {
                       profile.currentStreak == 0
                           ? 'Start your streak today'
                           : '${profile.currentStreak}-day check-in streak',
-                      style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.tertiary),
+                      style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${rank.label} · ${profile.totalXp} XP',
-                      style: theme.textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.85)),
                     ),
                   ],
                 ),

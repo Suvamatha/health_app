@@ -5,6 +5,8 @@ import '../../screens/onboarding/widgets/onboarding_screen.dart';
 import '../../screens/dashboard/dashboard_screen.dart';
 import '../../features/period/presentation/cycle_screen.dart';
 import '../../screens/history/history_screen.dart';
+import '../../screens/insights/insights_screen.dart';
+import '../../screens/setting/settings_screen.dart';
 import '../navigation/scaffold_with_nav_bar.dart';
 
 final appRouter = GoRouter(
@@ -17,6 +19,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => OnboardingScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
 
     StatefulShellRoute.indexedStack(
@@ -32,6 +38,11 @@ final appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(path: '/cycle', builder: (context, state) => const CycleScreen()),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(path: '/insights', builder: (context, state) => const InsightsScreen()),
           ],
         ),
         StatefulShellBranch(

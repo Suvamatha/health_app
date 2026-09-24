@@ -49,6 +49,39 @@ class NotificationService {
     await _plugin.cancel(1);
   }
 
+  /// Generic scheduler used by custom reminders (meds/vitamins, period
+  /// prep, mood check-ins, etc). Each caller supplies a stable [id] so it
+  /// can be individually rescheduled or cancelled later.
+  Future<void> scheduleReminder({
+    required int id,
+    required String title,
+    required String body,
+    required int hour,
+    required int minute,
+  }) async {
+    await _plugin.zonedSchedule(
+      id,
+      title,
+      body,
+      _nextInstanceOf(hour, minute),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'custom_reminders_channel',
+          'Reminders',
+          importance: Importance.defaultImportance,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  Future<void> cancelReminder(int id) async {
+    await _plugin.cancel(id);
+  }
+
   tz.TZDateTime _nextInstanceOf(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);

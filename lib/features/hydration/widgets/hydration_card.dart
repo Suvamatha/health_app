@@ -19,65 +19,92 @@ class HydrationCard extends StatelessWidget {
         if (state.isLoading) {
           return const DashboardCard(
             child: SizedBox(
-              height: 120,
+              height: 140,
               child: Center(child: CircularProgressIndicator()),
             ),
           );
         }
 
-        final progress = state.glassesLoggedToday / state.dailyGoal;
+        final progress = (state.glassesLoggedToday / state.dailyGoal).clamp(0.0, 1.0);
+        final isDone = state.glassesLoggedToday >= state.dailyGoal;
 
         return DashboardCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.water_drop_outlined, color: theme.colorScheme.primary, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Hydration', style: theme.textTheme.labelLarge),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 64,
-                    height: 64,
-                    child: CircularProgressIndicator(
-                      value: progress.clamp(0, 1),
-                      strokeWidth: 6,
-                      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-                      valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
-                    ),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                ).createShader(bounds),
+                child: SizedBox(
+                  width: 68,
+                  height: 68,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 7,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    valueColor: const AlwaysStoppedAnimation(Colors.white),
                   ),
-                  Text(
-                    '${state.glassesLoggedToday}/${state.dailyGoal}',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    context.read<HydrationCubit>().addGlass();
-                    context.read<GamificationCubit>().recordCheckIn();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.primary,
-                    side: BorderSide(color: theme.colorScheme.primary),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Add glass'),
                 ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.water_drop_outlined, color: theme.colorScheme.primary, size: 18),
+                        const SizedBox(width: 6),
+                        Text('Hydration', style: theme.textTheme.labelLarge),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isDone
+                          ? 'Goal reached — nice!'
+                          : '${state.glassesLoggedToday} of ${state.dailyGoal} glasses',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _AddGlassButton(
+                onTap: () {
+                  context.read<HydrationCubit>().addGlass();
+                  context.read<GamificationCubit>().recordCheckIn();
+                },
               ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _AddGlassButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddGlassButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: theme.colorScheme.primary,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: const Padding(
+          padding: EdgeInsets.all(12),
+          child: Icon(Icons.add, color: Colors.white, size: 20),
+        ),
+      ),
     );
   }
 }

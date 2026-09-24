@@ -6,6 +6,7 @@ import 'package:healthtracker/screens/history/widgets/data_strip.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/dashboard_card.dart';
 import '../../features/hydration/presentation/cubit/hydration_cubit.dart';
+import '../../features/journal/presentation/widgets/journal_note_field.dart';
 import '../../features/mood/presentation/cubit/mood_cubit.dart';
 import '../../features/mood/domain/entities/mood_entry.dart';
 import '../../features/period/presentation/cubit/period_cubit.dart';
@@ -24,9 +25,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<int>? _hydrationFuture;
   Future<MoodEntry?>? _moodFuture;
 
-  static const int _dailyGoal = 8; 
+  static const int _dailyGoal = 8;
 
   static const List<String> _moodLabels = ['Low', 'Okay', 'Good', 'Great'];
+
+  static const List<String> _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -59,10 +64,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       body: SafeArea(
+        bottom: false,
         child: ListView(
           padding: AppSpacing.screenPadding(context),
           children: [
             Text('History', style: theme.textTheme.displayLarge),
+            const SizedBox(height: 4),
+            Text('Look back on your last two weeks.', style: theme.textTheme.bodyMedium),
             const SizedBox(height: 20),
             DateStrip(
               dates: _recentDates,
@@ -71,7 +79,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+              '${_selectedDate.day} ${_months[_selectedDate.month - 1]} ${_selectedDate.year}',
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 12),
@@ -92,7 +100,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const Divider(height: 28),
                   FutureBuilder<MoodEntry?>(
                     future: _moodFuture,
                     builder: (context, snapshot) {
@@ -106,7 +114,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       return _HistoryRow(icon: Icons.favorite_outline, label: 'Mood', value: value);
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const Divider(height: 28),
                   BlocBuilder<PeriodCubit, PeriodState>(
                     builder: (context, state) {
                       final loggedToday = state.entries
@@ -121,6 +129,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            JournalNoteField(date: _selectedDate),
+            const SizedBox(height: 96),
           ],
         ),
       ),
@@ -141,10 +152,22 @@ class _HistoryRow extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
-        const SizedBox(width: 10),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 16, color: theme.colorScheme.primary),
+        ),
+        const SizedBox(width: 12),
         Expanded(child: Text(label, style: theme.textTheme.bodyLarge)),
-        Text(value, style: theme.textTheme.bodyMedium),
+        Text(
+          value,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
       ],
     );
   }

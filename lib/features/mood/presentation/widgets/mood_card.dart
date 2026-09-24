@@ -15,6 +15,8 @@ class MoodCard extends StatelessWidget {
     Icons.sentiment_very_satisfied_outlined,
   ];
 
+  static const List<String> _moodLabels = ['Low', 'Okay', 'Good', 'Great'];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -32,7 +34,7 @@ class MoodCard extends StatelessWidget {
                   Text('Mood check-in', style: theme.textTheme.labelLarge),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(_moodIcons.length, (index) {
@@ -44,19 +46,39 @@ class MoodCard extends StatelessWidget {
                       context.read<GamificationCubit>().recordCheckIn();
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(8),
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? theme.colorScheme.secondary.withValues(alpha: 0.15)
                             : Colors.transparent,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? theme.colorScheme.secondary.withValues(alpha: 0.4)
+                              : Colors.transparent,
+                        ),
                       ),
-                      child: Icon(
-                        _moodIcons[index],
-                        color: isSelected
-                            ? theme.colorScheme.secondary
-                            : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      child: Column(
+                        children: [
+                          Icon(
+                            _moodIcons[index],
+                            color: isSelected
+                                ? theme.colorScheme.secondary
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.35),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _moodLabels[index],
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: isSelected
+                                  ? theme.colorScheme.secondary
+                                  : theme.colorScheme.onSurface.withValues(alpha: 0.35),
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );

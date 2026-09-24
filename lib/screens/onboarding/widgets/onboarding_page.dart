@@ -27,26 +27,36 @@ class OnboardingPage extends StatelessWidget {
             width: iconContainerSize,
             height: iconContainerSize,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  theme.colorScheme.primary.withValues(alpha: 0.16),
+                  theme.colorScheme.secondary.withValues(alpha: 0.16),
+                ],
+              ),
               shape: BoxShape.circle,
+              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1), width: 1),
             ),
             child: Icon(
               icon,
-              size: iconContainerSize * 0.45, // icon scales WITH the container
+              size: iconContainerSize * 0.42, // icon scales WITH the container
               color: theme.colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 44),
           Text(
             title,
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineMedium,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             description,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyLarge,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+            ),
           ),
         ],
       ),

@@ -30,4 +30,8 @@ class MoodCubit extends Cubit<MoodState>{
   Future<MoodEntry?> getMoodForDate(DateTime date) async {
     return _repository.getEntryForDate(date);
   }
+
+  Future<List<MoodEntry>> getAllEntries() async {
+    return _repository.getAllEntries();
+  }
 }

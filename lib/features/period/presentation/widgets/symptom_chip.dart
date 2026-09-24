@@ -6,6 +6,7 @@ class SymptomChip extends StatelessWidget {
   final VoidCallback onTap;
 
   const SymptomChip({
+    super.key,
     required this.label,
     required this.isSelected,
     required this.onTap,
@@ -17,19 +18,22 @@ class SymptomChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected
-            ? theme.colorScheme.secondary
-            : theme.colorScheme.secondary.withValues(alpha: 0.08),
+          color: isSelected ? null : theme.colorScheme.secondary.withValues(alpha: 0.08),
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [theme.colorScheme.secondary, theme.colorScheme.secondary.withValues(alpha: 0.8)],
+                )
+              : null,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isSelected ? theme.colorScheme.surface : theme.colorScheme.secondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected ? Colors.white : theme.colorScheme.secondary,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ),

@@ -45,4 +45,9 @@ class MoodRepositoryImpl implements MoodRepository {
     all.add(entry);
     await _writeAllEntries(all);
   }
+
+  @override
+  Future<List<MoodEntry>> getAllEntries() async {
+    return _readAllEntries();
+  }
 }

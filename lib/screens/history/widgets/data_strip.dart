@@ -23,7 +23,7 @@ class DateStrip extends StatelessWidget {
     final theme = Theme.of(context);
 
     return SizedBox(
-      height: 72,
+      height: 76,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: dates.length,
@@ -36,30 +36,35 @@ class DateStrip extends StatelessWidget {
             onTap: () => onDateSelected(date),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 52,
+              width: 54,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
+                gradient: isSelected
+                    ? LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                      )
+                    : null,
+                color: isSelected ? null : theme.colorScheme.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     _weekdayLabels[date.weekday - 1],
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: isSelected
-                          ? theme.colorScheme.surface.withValues(alpha: 0.8)
+                          ? Colors.white.withValues(alpha: 0.85)
                           : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     '${date.day}',
-                    style: theme.textTheme.headlineMedium?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
                       fontSize: 18,
-                      color: isSelected ? theme.colorScheme.surface : theme.colorScheme.onSurface,
+                      color: isSelected ? Colors.white : theme.colorScheme.onSurface,
                     ),
                   ),
                 ],

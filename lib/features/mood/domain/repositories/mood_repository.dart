@@ -4,4 +4,5 @@ abstract class MoodRepository {
   Future <MoodEntry?> getTodayEntry();
   Future<void> saveTodayEntry(MoodEntry entry);
   Future<MoodEntry?>getEntryForDate(DateTime date);
+  Future<List<MoodEntry>> getAllEntries();
 }
