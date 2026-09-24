@@ -181,7 +181,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
               controller: _nameController,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                hintText: 'e.g. Maya',
+                hintText: 'Your Name',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
               ),
             ),

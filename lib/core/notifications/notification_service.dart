@@ -259,6 +259,27 @@ class NotificationService {
     );
   }
 
+  /// Schedules (rather than immediately shows) a custom-channel notification
+  /// a few seconds from now. This lets the user verify Android's alarm path,
+  /// which is the same path used by saved custom reminders.
+  Future<void> scheduleCustomReminderTest() async {
+    final now = tz.TZDateTime.now(tz.local);
+    await _plugin.cancel(998);
+    await _plugin.zonedSchedule(
+      998,
+      'Custom reminder test',
+      'This confirms scheduled custom reminders can arrive on this device.',
+      now.add(const Duration(seconds: 5)),
+      const NotificationDetails(
+        android: _customAndroidDetails,
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: await _scheduleMode(),
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
   Future<AndroidScheduleMode> _scheduleMode() async {
     final androidPlugin = _plugin
         .resolvePlatformSpecificImplementation<
@@ -358,7 +379,6 @@ class NotificationService {
       androidScheduleMode: await _scheduleMode(),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 

@@ -19,10 +19,9 @@ class RemindersSection extends StatelessWidget {
     final cubit = context.read<RemindersCubit>();
     final labelController = TextEditingController(text: existing?.label ?? '');
     ReminderType selectedType = existing?.type ?? ReminderType.medication;
-    TimeOfDay selectedTime = TimeOfDay(
-      hour: existing?.hour ?? 9,
-      minute: existing?.minute ?? 0,
-    );
+    TimeOfDay selectedTime = existing == null
+        ? TimeOfDay.now()
+        : TimeOfDay(hour: existing.hour, minute: existing.minute);
 
     await showModalBottomSheet(
       context: context,
@@ -77,7 +76,7 @@ class RemindersSection extends StatelessWidget {
                       Icons.access_time,
                       color: theme.colorScheme.primary,
                     ),
-                    title: const Text('Time'),
+                    title: const Text('Time (check AM/PM)'),
                     trailing: Text(
                       selectedTime.format(sheetContext),
                       style: theme.textTheme.labelLarge,
@@ -91,6 +90,10 @@ class RemindersSection extends StatelessWidget {
                         setSheetState(() => selectedTime = picked);
                       }
                     },
+                  ),
+                  Text(
+                    'Choose AM or PM in the time picker. A time that has already passed today will be scheduled for tomorrow.',
+                    style: theme.textTheme.bodySmall,
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
@@ -120,6 +123,13 @@ class RemindersSection extends StatelessWidget {
                           }
                           if (sheetContext.mounted) {
                             Navigator.of(sheetContext).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Reminder scheduled for ${_nextOccurrenceLabel(context, selectedTime)}.',
+                                ),
+                              ),
+                            );
                           }
                         } catch (_) {
                           if (!sheetContext.mounted) return;
@@ -148,6 +158,23 @@ class RemindersSection extends StatelessWidget {
 
   Future<void> _showAddReminderSheet(BuildContext context) =>
       _showReminderSheet(context);
+
+  String _nextOccurrenceLabel(BuildContext context, TimeOfDay time) {
+    final now = DateTime.now();
+    final selectedToday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+    if (now.difference(selectedToday) < const Duration(minutes: 1) &&
+        selectedToday.isBefore(now)) {
+      return 'a few seconds from now';
+    }
+    final day = selectedToday.isAfter(now) ? 'today' : 'tomorrow';
+    return '$day at ${time.format(context)}';
+  }
 
   IconData _iconFor(ReminderType type) {
     switch (type) {

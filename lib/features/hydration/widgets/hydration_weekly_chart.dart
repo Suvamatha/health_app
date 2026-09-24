@@ -17,6 +17,7 @@ class _HydrationWeeklyChartState extends State<HydrationWeeklyChart> {
   static const _dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   List<int>? _glassesByDay;
+  List<DateTime>? _days;
 
   @override
   void initState() {
@@ -30,21 +31,27 @@ class _HydrationWeeklyChartState extends State<HydrationWeeklyChart> {
     final today = DateTime(now.year, now.month, now.day);
     // Oldest to newest, ending today.
     final days = List.generate(7, (i) => today.subtract(Duration(days: 6 - i)));
-    final counts = await Future.wait(days.map((d) => cubit.getGlassesCountForDate(d)));
+    final counts = await Future.wait(
+      days.map((d) => cubit.getGlassesCountForDate(d)),
+    );
     if (!mounted) return;
-    setState(() => _glassesByDay = counts);
+    setState(() {
+      _days = days;
+      _glassesByDay = counts;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final counts = _glassesByDay;
+    final days = _days;
 
     return BlocListener<HydrationCubit, HydrationState>(
       // The 7-day bars were only ever computed once in initState, so a
       // newly logged glass didn't move the chart until the screen was
       // reopened. Re-fetch every time hydration state changes.
-      listener: (_, __) => _load(),
+      listener: (_, state) => _load(),
       child: BlocBuilder<HydrationCubit, HydrationState>(
         builder: (context, state) {
           return DashboardCard(
@@ -53,16 +60,22 @@ class _HydrationWeeklyChartState extends State<HydrationWeeklyChart> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.water_drop_outlined, color: theme.colorScheme.primary, size: 20),
+                    Icon(
+                      Icons.water_drop_outlined,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text('This week', style: theme.textTheme.labelLarge),
                   ],
                 ),
                 const SizedBox(height: 20),
-                if (counts == null)
+                if (counts == null || days == null)
                   const SizedBox(
                     height: 96,
-                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   )
                 else
                   SizedBox(
@@ -85,7 +98,8 @@ class _HydrationWeeklyChartState extends State<HydrationWeeklyChart> {
                                   '$count',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.5),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -96,15 +110,26 @@ class _HydrationWeeklyChartState extends State<HydrationWeeklyChart> {
                                       heightFactor: ratio == 0 ? 0.03 : ratio,
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                           gradient: LinearGradient(
                                             begin: Alignment.topCenter,
                                             end: Alignment.bottomCenter,
                                             colors: reachedGoal
-                                                ? [theme.colorScheme.primary, theme.colorScheme.secondary]
+                                                ? [
+                                                    theme.colorScheme.primary,
+                                                    theme.colorScheme.secondary,
+                                                  ]
                                                 : [
-                                                    theme.colorScheme.primary.withValues(alpha: 0.55),
-                                                    theme.colorScheme.primary.withValues(alpha: 0.35),
+                                                    theme.colorScheme.primary
+                                                        .withValues(
+                                                          alpha: 0.55,
+                                                        ),
+                                                    theme.colorScheme.primary
+                                                        .withValues(
+                                                          alpha: 0.35,
+                                                        ),
                                                   ],
                                           ),
                                         ),
@@ -114,12 +139,19 @@ class _HydrationWeeklyChartState extends State<HydrationWeeklyChart> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  _dayLabels[i],
+                                  // DateTime.weekday is Monday = 1 through
+                                  // Sunday = 7. The chart ends today, so its
+                                  // labels must come from the actual dates,
+                                  // not from a fixed Mon-to-Sun list.
+                                  _dayLabels[days[i].weekday - 1],
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                                    fontWeight: isToday
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
                                     color: isToday
                                         ? theme.colorScheme.primary
-                                        : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                        : theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.5),
                                   ),
                                 ),
                               ],
