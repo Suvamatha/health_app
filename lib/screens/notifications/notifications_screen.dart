@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/di/injection.dart';
 import '../../core/notifications/hydration_reminder_prefs.dart';
@@ -7,7 +7,6 @@ import '../../core/notifications/notification_service.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/dashboard_card.dart';
-import '../setting/widgets/reminders_section.dart';
 
 /// The dedicated home for every reminder in the app: the daily/interval
 /// hydration nudge plus custom reminders, along with the two things that
@@ -27,6 +26,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   bool? _systemNotificationsAllowed;
   bool? _batteryOptimizationIgnored;
+  bool? _exactAlarmsAllowed;
   bool _isSendingTest = false;
 
   @override
@@ -40,6 +40,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final service = getIt<NotificationService>();
     final allowed = await service.areNotificationsEnabled();
     final batteryOk = await service.isIgnoringBatteryOptimizations();
+    final exactOk = await service.canScheduleExactNotifications();
     if (!mounted) return;
     setState(() {
       _enabled = saved.enabled;
@@ -47,16 +48,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _frequency = saved.frequency;
       _systemNotificationsAllowed = allowed;
       _batteryOptimizationIgnored = batteryOk;
+      _exactAlarmsAllowed = exactOk;
     });
   }
 
   Future<void> _persist() async {
-    await HydrationReminderPrefs.save(HydrationReminderSettings(
-      enabled: _enabled,
-      hour: _time.hour,
-      minute: _time.minute,
-      frequency: _frequency,
-    ));
+    await HydrationReminderPrefs.save(
+      HydrationReminderSettings(
+        enabled: _enabled,
+        hour: _time.hour,
+        minute: _time.minute,
+        frequency: _frequency,
+      ),
+    );
   }
 
   Future<void> _applySchedule() async {
@@ -66,7 +70,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return;
     }
     if (_frequency == HydrationReminderFrequency.onceDaily) {
-      await service.scheduleDailyHydrationReminder(hour: _time.hour, minute: _time.minute);
+      await service.scheduleDailyHydrationReminder(
+        hour: _time.hour,
+        minute: _time.minute,
+      );
     } else {
       await service.scheduleIntervalHydrationReminders(_frequency);
     }
@@ -75,14 +82,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _toggleEnabled(bool value) async {
     if (value) {
       final granted = await getIt<NotificationService>().requestPermission();
-      final allowed = await getIt<NotificationService>().areNotificationsEnabled();
+      final allowed = await getIt<NotificationService>()
+          .areNotificationsEnabled();
       if (!mounted) return;
       setState(() => _systemNotificationsAllowed = allowed);
       if (!granted || !allowed) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Notifications are blocked in system settings. Allow them first.'),
+            content: Text(
+              'Notifications are blocked in system settings. Allow them first.',
+            ),
           ),
         );
         return;
@@ -113,7 +123,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await getIt<NotificationService>().showTestNotification();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Test sent — check your notification tray now.')),
+        const SnackBar(
+          content: Text('Test sent — check your notification tray now.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSendingTest = false);
@@ -122,9 +134,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _fixBatteryOptimization() async {
     await getIt<NotificationService>().requestIgnoreBatteryOptimizations();
-    final ok = await getIt<NotificationService>().isIgnoringBatteryOptimizations();
+    final ok = await getIt<NotificationService>()
+        .isIgnoringBatteryOptimizations();
     if (!mounted) return;
     setState(() => _batteryOptimizationIgnored = ok);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please select "Unrestricted" or "Don\'t optimize" for Wellspring.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _fixExactAlarms() async {
+    await getIt<NotificationService>().requestExactAlarmsPermission();
+    final ok = await getIt<NotificationService>()
+        .canScheduleExactNotifications();
+    if (!mounted) return;
+    setState(() => _exactAlarmsAllowed = ok);
   }
 
   Future<void> _openSystemSettings() async {
@@ -159,13 +189,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.notifications_off_outlined, color: theme.colorScheme.error),
+                      Icon(
+                        Icons.notifications_off_outlined,
+                        color: theme.colorScheme.error,
+                      ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Notifications are blocked', style: theme.textTheme.titleMedium),
+                            Text(
+                              'Notifications are blocked',
+                              style: theme.textTheme.titleMedium,
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               'Your phone\'s system settings are blocking notifications for this app, so reminders can never show up no matter what is set below.',
@@ -196,19 +232,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Container(
                           padding: const EdgeInsets.all(9),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
-                          child: Icon(Icons.water_drop_outlined, size: 18, color: theme.colorScheme.primary),
+                          child: Icon(
+                            Icons.water_drop_outlined,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Daily hydration reminder', style: theme.textTheme.bodyLarge),
+                              Text(
+                                'Daily hydration reminder',
+                                style: theme.textTheme.bodyLarge,
+                              ),
                               const SizedBox(height: 2),
-                              Text(_statusLabel, style: theme.textTheme.bodyMedium),
+                              Text(
+                                _statusLabel,
+                                style: theme.textTheme.bodyMedium,
+                              ),
                             ],
                           ),
                         ),
@@ -222,7 +270,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('How often', style: theme.textTheme.bodyMedium),
+                        child: Text(
+                          'How often',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                       ),
                     ),
                     Padding(
@@ -230,7 +281,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: HydrationReminderFrequency.values.map((frequency) {
+                        children: HydrationReminderFrequency.values.map((
+                          frequency,
+                        ) {
                           final isSelected = _frequency == frequency;
                           return ChoiceChip(
                             label: Text(frequency.label),
@@ -244,9 +297,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       Divider(height: 1, color: theme.colorScheme.outline),
                       ListTile(
                         contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                        leading: Icon(Icons.access_time, color: theme.colorScheme.primary),
-                        title: Text('Reminder time', style: theme.textTheme.bodyLarge),
-                        trailing: Text(_time.format(context), style: theme.textTheme.labelLarge),
+                        leading: Icon(
+                          Icons.access_time,
+                          color: theme.colorScheme.primary,
+                        ),
+                        title: Text(
+                          'Reminder time',
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                        trailing: Text(
+                          _time.format(context),
+                          style: theme.textTheme.labelLarge,
+                        ),
                         onTap: _pickTime,
                       ),
                     ] else
@@ -270,22 +332,43 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 children: [
                   ListTile(
                     contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                    leading: Icon(Icons.notifications_active_outlined, color: theme.colorScheme.primary),
-                    title: Text('Send a test notification', style: theme.textTheme.bodyLarge),
+                    leading: Icon(
+                      Icons.notifications_active_outlined,
+                      color: theme.colorScheme.primary,
+                    ),
+                    title: Text(
+                      'Send a test notification',
+                      style: theme.textTheme.bodyLarge,
+                    ),
                     subtitle: Text(
                       'Confirms this device can show notifications right now.',
                       style: theme.textTheme.bodyMedium,
                     ),
                     trailing: _isSendingTest
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                        : Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.chevron_right,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.4,
+                            ),
+                          ),
                     onTap: _isSendingTest ? null : _sendTest,
                   ),
                   Divider(height: 1, color: theme.colorScheme.outline),
                   ListTile(
                     contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                    leading: Icon(Icons.battery_saver_outlined, color: theme.colorScheme.primary),
-                    title: Text('Allow background reminders', style: theme.textTheme.bodyLarge),
+                    leading: Icon(
+                      Icons.battery_saver_outlined,
+                      color: theme.colorScheme.primary,
+                    ),
+                    title: Text(
+                      'Allow background reminders',
+                      style: theme.textTheme.bodyLarge,
+                    ),
                     subtitle: Text(
                       _batteryOptimizationIgnored == true
                           ? 'Allowed — your phone won\'t pause reminders to save battery.'
@@ -293,17 +376,69 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       style: theme.textTheme.bodyMedium,
                     ),
                     trailing: _batteryOptimizationIgnored == true
-                        ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
-                        : Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-                    onTap: _batteryOptimizationIgnored == true ? null : _fixBatteryOptimization,
+                        ? Icon(
+                            Icons.check_circle,
+                            color: theme.colorScheme.primary,
+                          )
+                        : Icon(
+                            Icons.chevron_right,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.4,
+                            ),
+                          ),
+                    onTap: _fixBatteryOptimization,
+                  ),
+                  Divider(height: 1, color: theme.colorScheme.outline),
+                  ListTile(
+                    contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                    leading: Icon(
+                      Icons.alarm_on_outlined,
+                      color: theme.colorScheme.primary,
+                    ),
+                    title: Text(
+                      'Exact reminder timing',
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    subtitle: Text(
+                      _exactAlarmsAllowed == true
+                          ? 'Allowed — reminders will fire at the exact scheduled minute.'
+                          : 'Tap to allow exact alarms so reminders don\'t get delayed by Android.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    trailing: _exactAlarmsAllowed == true
+                        ? Icon(
+                            Icons.check_circle,
+                            color: theme.colorScheme.primary,
+                          )
+                        : Icon(
+                            Icons.chevron_right,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.4,
+                            ),
+                          ),
+                    onTap: _fixExactAlarms,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 28),
-            Text('CUSTOM REMINDERS', style: theme.textTheme.labelMedium),
-            const SizedBox(height: 10),
-            const RemindersSection(),
+            DashboardCard(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(16, 6, 12, 6),
+                leading: Icon(
+                  Icons.alarm_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+                title: Text('My reminders', style: theme.textTheme.bodyLarge),
+                subtitle: Text(
+                  'Create and edit medication or custom reminders.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/reminders'),
+              ),
+            ),
             const SizedBox(height: 96),
           ],
         ),

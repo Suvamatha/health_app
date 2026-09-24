@@ -67,83 +67,139 @@ class NotificationService {
 
   static const AndroidNotificationDetails _hydrationAndroidDetails =
       AndroidNotificationDetails(
-    'hydration_channel',
-    'Hydration Reminders',
-    channelDescription: 'Gentle reminders to drink water',
-    importance: Importance.max,
-    priority: Priority.high,
-  );
+        'wellspring_hydration_v2',
+        'Hydration Reminders',
+        channelDescription: 'Gentle reminders to drink water',
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        enableVibration: true,
+        enableLights: true,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.reminder,
+        visibility: NotificationVisibility.public,
+      );
 
   static const AndroidNotificationDetails _customAndroidDetails =
       AndroidNotificationDetails(
-    'custom_reminders_channel',
-    'Reminders',
-    channelDescription: 'Your custom reminders',
-    importance: Importance.max,
-    priority: Priority.high,
-  );
+        'wellspring_reminders_v2',
+        'Reminders',
+        channelDescription: 'Your custom reminders',
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        enableVibration: true,
+        enableLights: true,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.reminder,
+        visibility: NotificationVisibility.public,
+      );
 
   Future<void> initialize() async {
     tz.initializeTimeZones();
     try {
       final timeZoneInfo = await FlutterTimezone.getLocalTimezone();
-tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
+      final id = timeZoneInfo.identifier;
+      if (tz.timeZoneDatabase.locations.containsKey(id)) {
+        tz.setLocalLocation(tz.getLocation(id));
+      } else {
+        _setFallbackLocation();
+      }
     } catch (_) {
-      // Fall back to whatever default timezone package already has.
+      _setFallbackLocation();
     }
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    const settings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
     await _plugin.initialize(settings);
 
-    // Explicitly create both channels at MAX importance up front. If a
-    // channel is ever lazily auto-created at a lower importance (which can
-    // happen depending on OS/plugin version), Android locks that channel's
-    // importance permanently on the device -- no future call can raise it,
-    // which silently makes every future notification on that channel
-    // invisible or silent. Creating it correctly here avoids that trap,
-    // which is one of the most common real-world reasons a correctly
-    // scheduled notification "never arrives" on Android.
-    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    // Explicitly create both channels at MAX importance up front.
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await androidPlugin?.createNotificationChannel(
       const AndroidNotificationChannel(
-        'hydration_channel',
+        'wellspring_hydration_v2',
         'Hydration Reminders',
         description: 'Gentle reminders to drink water',
         importance: Importance.max,
         playSound: true,
+        enableVibration: true,
+        enableLights: true,
       ),
     );
     await androidPlugin?.createNotificationChannel(
       const AndroidNotificationChannel(
-        'custom_reminders_channel',
+        'wellspring_reminders_v2',
         'Reminders',
         description: 'Your custom reminders',
         importance: Importance.max,
         playSound: true,
+        enableVibration: true,
+        enableLights: true,
       ),
     );
 
     await requestPermission();
   }
 
+  void _setFallbackLocation() {
+    try {
+      final offset = DateTime.now().timeZoneOffset;
+      for (final loc in tz.timeZoneDatabase.locations.values) {
+        if (loc.currentTimeZone.offset == offset.inMilliseconds) {
+          tz.setLocalLocation(loc);
+          return;
+        }
+      }
+    } catch (_) {}
+  }
+
   Future<bool> requestPermission() async {
-    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidPlugin == null) return true;
     final notificationsGranted =
         await androidPlugin.requestNotificationsPermission() ?? true;
-    final exactAlarmGranted =
-        await androidPlugin.requestExactAlarmsPermission() ?? true;
-    return notificationsGranted && exactAlarmGranted;
+    try {
+      await androidPlugin.requestExactAlarmsPermission();
+    } catch (_) {}
+    return notificationsGranted;
+  }
+
+  Future<bool> canScheduleExactNotifications() async {
+    if (!Platform.isAndroid) return true;
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    return await androidPlugin?.canScheduleExactNotifications() ?? true;
+  }
+
+  Future<void> requestExactAlarmsPermission() async {
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    try {
+      await androidPlugin?.requestExactAlarmsPermission();
+    } catch (_) {}
+    try {
+      await ph.Permission.scheduleExactAlarm.request();
+    } catch (_) {}
   }
 
   /// Checks whether notifications are currently allowed at the OS level, so
@@ -151,8 +207,10 @@ tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
   /// toggle that looks "on" while nothing can ever be delivered.
   Future<bool> areNotificationsEnabled() async {
     if (!Platform.isAndroid) return true;
-    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return await androidPlugin?.areNotificationsEnabled() ?? true;
   }
 
@@ -169,8 +227,16 @@ tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
   /// up, even with every permission granted. Not needed on iOS.
   Future<bool> requestIgnoreBatteryOptimizations() async {
     if (!Platform.isAndroid) return true;
-    final status = await ph.Permission.ignoreBatteryOptimizations.request();
-    return status.isGranted;
+    try {
+      final status = await ph.Permission.ignoreBatteryOptimizations.request();
+      if (!status.isGranted) {
+        await ph.openAppSettings();
+      }
+      return await ph.Permission.ignoreBatteryOptimizations.isGranted;
+    } catch (_) {
+      await ph.openAppSettings();
+      return false;
+    }
   }
 
   Future<bool> isIgnoringBatteryOptimizations() async {
@@ -187,15 +253,17 @@ tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
       'Test notification',
       'If you can see this, notifications work on this device.',
       const NotificationDetails(
-        android: _hydrationAndroidDetails,
+        android: _customAndroidDetails,
         iOS: DarwinNotificationDetails(),
       ),
     );
   }
 
   Future<AndroidScheduleMode> _scheduleMode() async {
-    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     final canScheduleExact =
         await androidPlugin?.canScheduleExactNotifications() ?? true;
     return canScheduleExact
@@ -238,9 +306,11 @@ tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
     var id = _hydrationSlotIdStart;
     final windowStart = windowStartHour * 60;
     final windowEnd = windowEndHour * 60;
-    for (var minutesFromMidnight = windowStart;
-        minutesFromMidnight <= windowEnd;
-        minutesFromMidnight += intervalMinutes) {
+    for (
+      var minutesFromMidnight = windowStart;
+      minutesFromMidnight <= windowEnd;
+      minutesFromMidnight += intervalMinutes
+    ) {
       if (id > _hydrationSlotIdEnd) break; // safety cap
       final hour = minutesFromMidnight ~/ 60;
       final minute = minutesFromMidnight % 60;
@@ -273,6 +343,9 @@ tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
     required int hour,
     required int minute,
   }) async {
+    // Updating a notification ID is supported by the plugin, but cancelling
+    // explicitly is more reliable on OEM Android alarm implementations.
+    await _plugin.cancel(id);
     await _plugin.zonedSchedule(
       id,
       title,
@@ -293,9 +366,20 @@ tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
 
   tz.TZDateTime _nextInstanceOf(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
     if (scheduled.isBefore(now)) {
+      // If user scheduled for the current minute (difference < 1 min in the past),
+      // they're testing the notification right now! Fire in 5 seconds.
+      if (now.difference(scheduled) < const Duration(minutes: 1)) {
+        return now.add(const Duration(seconds: 5));
+      }
       scheduled = scheduled.add(const Duration(days: 1));
     }
     return scheduled;

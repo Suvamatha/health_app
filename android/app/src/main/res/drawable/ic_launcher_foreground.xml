@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A simple water drop: crisp at every launcher size and safely centred
+         inside Android's adaptive-icon mask. -->
+    <group
+        android:translateX="18"
+        android:translateY="15"
+        android:scaleX="3"
+        android:scaleY="3">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M12,2.2C12,2.2 5,10.1 5,15.1C5,19 8.1,22 12,22C15.9,22 19,19 19,15.1C19,10.1 12,2.2 12,2.2ZM12,19.5C9.6,19.5 7.7,17.6 7.7,15.2C7.7,13.2 9.7,9.7 12,6.4C14.3,9.7 16.3,13.2 16.3,15.2C16.3,17.6 14.4,19.5 12,19.5Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M8,14.8C8,17 9.8,18.7 12,18.7C12.8,18.7 13.6,18.5 14.2,18L12,15.8L9.8,13.6C8.7,14.2 8,14.5 8,14.8Z" />
+    </group>
+</vector>

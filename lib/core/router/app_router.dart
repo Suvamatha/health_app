@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../screens/splash/splash_screen.dart';
 import '../../screens/onboarding/widgets/onboarding_screen.dart';
@@ -11,15 +10,13 @@ import '../../screens/notifications/notifications_screen.dart';
 import '../../screens/appearance/appearance_screen.dart';
 import '../../screens/privacy/privacy_screen.dart';
 import '../../screens/profile/profile_screen.dart';
+import '../../screens/reminders/custom_reminders_screen.dart';
 import '../navigation/scaffold_with_nav_bar.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
   routes: [
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => OnboardingScreen(),
@@ -31,6 +28,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/reminders',
+      builder: (context, state) => const CustomRemindersScreen(),
     ),
     GoRoute(
       path: '/appearance',
@@ -52,25 +53,37 @@ final appRouter = GoRouter(
       branches: [
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/dashboard', builder: (context, state)=> const DashboardScreen())
+            GoRoute(
+              path: '/dashboard',
+              builder: (context, state) => const DashboardScreen(),
+            ),
           ],
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/cycle', builder: (context, state) => const CycleScreen()),
+            GoRoute(
+              path: '/cycle',
+              builder: (context, state) => const CycleScreen(),
+            ),
           ],
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/insights', builder: (context, state) => const InsightsScreen()),
+            GoRoute(
+              path: '/insights',
+              builder: (context, state) => const InsightsScreen(),
+            ),
           ],
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/history', builder: (context, state) => const HistoryScreen()),
+            GoRoute(
+              path: '/history',
+              builder: (context, state) => const HistoryScreen(),
+            ),
           ],
         ),
-      ]
-    )
-  ]
+      ],
+    ),
+  ],
 );

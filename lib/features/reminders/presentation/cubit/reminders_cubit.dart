@@ -13,17 +13,37 @@ class RemindersCubit extends Cubit<RemindersState> {
   final ReminderRepository _repository;
   final NotificationService _notificationService;
 
-  RemindersCubit(this._repository, this._notificationService) : super(const RemindersState());
+  RemindersCubit(this._repository, this._notificationService)
+    : super(const RemindersState());
 
   Future<void> loadReminders() async {
     final reminders = await _repository.getAllReminders();
+    // Reminders created by an older app build may have been saved even when
+    // Android rejected their alarm. Re-apply every enabled reminder at app
+    // start so those existing rows begin working without requiring the user
+    // to delete and recreate them.
+    for (final reminder in reminders.where((reminder) => reminder.isEnabled)) {
+      try {
+        await _notificationService.scheduleReminder(
+          id: reminder.notificationId,
+          title: reminder.label,
+          body: _bodyFor(reminder.type),
+          hour: reminder.hour,
+          minute: reminder.minute,
+        );
+      } catch (_) {
+        // The add/edit flow reports scheduling errors to the user. Loading
+        // must still show saved reminders when Android is temporarily blocked.
+      }
+    }
     emit(state.copyWith(isLoading: false, reminders: reminders));
   }
 
   int _newNotificationId() {
     // Reserve id 1 for the built-in hydration reminder; custom reminders
-    // start at 2000 and use time-based offsets to stay collision-free.
-    return 2000 + (DateTime.now().microsecondsSinceEpoch % 100000);
+    // start well above the hydration range and use time-based offsets to
+    // stay collision-free.
+    return 10000 + (DateTime.now().millisecondsSinceEpoch % 2000000000);
   }
 
   Future<void> addReminder({
@@ -41,34 +61,31 @@ class RemindersCubit extends Cubit<RemindersState> {
       minute: minute,
       isEnabled: true,
     );
+    await _schedule(reminder);
     await _repository.saveReminder(reminder);
-    await _notificationService.requestPermission();
-    await _notificationService.scheduleReminder(
-      id: reminder.notificationId,
-      title: reminder.label,
-      body: _bodyFor(reminder.type),
-      hour: reminder.hour,
-      minute: reminder.minute,
-    );
+    await loadReminders();
+  }
+
+  /// Replaces the scheduled alarm as well as the saved values.  Cancelling
+  /// first prevents an old time from surviving an edit on Android devices.
+  Future<void> updateReminder(Reminder reminder) async {
+    await _notificationService.cancelReminder(reminder.notificationId);
+    if (reminder.isEnabled) {
+      await _schedule(reminder);
+    }
+    await _repository.saveReminder(reminder);
     await loadReminders();
   }
 
   Future<void> toggleReminder(String id, bool isEnabled) async {
     final reminder = state.reminders.firstWhere((r) => r.id == id);
     final updated = reminder.copyWith(isEnabled: isEnabled);
-    await _repository.saveReminder(updated);
-
     if (isEnabled) {
-      await _notificationService.scheduleReminder(
-        id: updated.notificationId,
-        title: updated.label,
-        body: _bodyFor(updated.type),
-        hour: updated.hour,
-        minute: updated.minute,
-      );
+      await _schedule(updated);
     } else {
       await _notificationService.cancelReminder(updated.notificationId);
     }
+    await _repository.saveReminder(updated);
     await loadReminders();
   }
 
@@ -90,5 +107,19 @@ class RemindersCubit extends Cubit<RemindersState> {
       case ReminderType.custom:
         return 'A gentle reminder from Wellspring.';
     }
+  }
+
+  Future<void> _schedule(Reminder reminder) async {
+    final permitted = await _notificationService.requestPermission();
+    if (!permitted || !await _notificationService.areNotificationsEnabled()) {
+      throw StateError('Notifications are blocked in your phone settings.');
+    }
+    await _notificationService.scheduleReminder(
+      id: reminder.notificationId,
+      title: reminder.label,
+      body: _bodyFor(reminder.type),
+      hour: reminder.hour,
+      minute: reminder.minute,
+    );
   }
 }

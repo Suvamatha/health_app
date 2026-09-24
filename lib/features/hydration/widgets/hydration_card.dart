@@ -99,21 +99,45 @@ class HydrationCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) => LinearGradient(
-                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
-                ).createShader(bounds),
-                child: SizedBox(
-                  width: 68,
-                  height: 68,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 7,
-                    strokeCap: StrokeCap.round,
-                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation(Colors.white),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                    ).createShader(bounds),
+                    child: SizedBox(
+                      width: 68,
+                      height: 68,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 6.5,
+                        strokeCap: StrokeCap.round,
+                        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                        valueColor: const AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    ),
                   ),
-                ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isDone ? Icons.check_circle_outline : Icons.water_drop,
+                        size: 16,
+                        color: isDone ? theme.colorScheme.primary : theme.colorScheme.primary.withValues(alpha: 0.85),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        '${state.glassesLoggedToday}/${state.dailyGoal}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(width: 16),
               Expanded(

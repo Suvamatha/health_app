@@ -1,4 +1,3 @@
-import '../../period/domain/entities/period_entry.dart';
 import 'entities/mood_entry.dart';
 
 /// Correlates logged mood with cycle timing so the app can gently surface

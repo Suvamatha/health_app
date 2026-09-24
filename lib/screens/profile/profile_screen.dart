@@ -145,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => context.push('/cycle'),
+                          onPressed: () => context.go('/cycle'),
                           child: const Text('View →'),
                         ),
                       ],
@@ -245,7 +245,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _MenuRow(
                       emoji: '😊',
                       title: 'Mood & Wellness',
-                      onTap: () => context.push('/insights'),
+                      onTap: () => context.go('/insights'),
                     ),
                     Divider(height: 1, color: theme.colorScheme.outline),
                     _MenuRow(
@@ -265,13 +265,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: 'Privacy & Security',
                       onTap: () => context.push('/privacy'),
                     ),
-                    Divider(height: 1, color: theme.colorScheme.outline),
-                    _MenuRow(
-                      emoji: '⚙️',
-                      title: 'Settings',
-                      onTap: () => context.push('/settings'),
-                    ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              DashboardCard(
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                  leading: Icon(Icons.spa_outlined, color: theme.colorScheme.primary),
+                  title: Text('Wellspring', style: theme.textTheme.bodyLarge),
+                  trailing: Text('v1.3.0', style: theme.textTheme.bodyMedium),
                 ),
               ),
               const SizedBox(height: 96),

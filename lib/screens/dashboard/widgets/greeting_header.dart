@@ -76,35 +76,27 @@ class _GreetingHeaderState extends State<GreetingHeader> {
             ],
           ),
         ),
-        Row(
-          children: [
-            IconButton(
-              onPressed: () => context.push('/settings'),
-              icon: Icon(Icons.settings_outlined, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-            ),
-            GestureDetector(
-              onTap: () => context.push('/profile').then((_) => _loadProfile()),
-              child: Container(
-                padding: const EdgeInsets.all(2.5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
-                  ),
-                ),
-                child: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: theme.colorScheme.surface,
-                  backgroundImage: (_avatarPath != null && File(_avatarPath!).existsSync())
-                      ? FileImage(File(_avatarPath!))
-                      : null,
-                  child: (_avatarPath != null && File(_avatarPath!).existsSync())
-                      ? null
-                      : Icon(Icons.person_outline, color: theme.colorScheme.primary),
-                ),
+        GestureDetector(
+          onTap: () => context.push('/profile').then((_) => _loadProfile()),
+          child: Container(
+            padding: const EdgeInsets.all(2.5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
               ),
             ),
-          ],
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: theme.colorScheme.surface,
+              backgroundImage: (_avatarPath != null && File(_avatarPath!).existsSync())
+                  ? FileImage(File(_avatarPath!))
+                  : null,
+              child: (_avatarPath != null && File(_avatarPath!).existsSync())
+                  ? null
+                  : Icon(Icons.person_outline, color: theme.colorScheme.primary),
+            ),
+          ),
         ),
       ],
     );

@@ -12,11 +12,17 @@ import '../../../features/reminders/presentation/cubit/reminders_state.dart';
 class RemindersSection extends StatelessWidget {
   const RemindersSection({super.key});
 
-  Future<void> _showAddReminderSheet(BuildContext context) async {
+  Future<void> _showReminderSheet(
+    BuildContext context, {
+    Reminder? existing,
+  }) async {
     final cubit = context.read<RemindersCubit>();
-    final labelController = TextEditingController();
-    ReminderType selectedType = ReminderType.medication;
-    TimeOfDay selectedTime = const TimeOfDay(hour: 9, minute: 0);
+    final labelController = TextEditingController(text: existing?.label ?? '');
+    ReminderType selectedType = existing?.type ?? ReminderType.medication;
+    TimeOfDay selectedTime = TimeOfDay(
+      hour: existing?.hour ?? 9,
+      minute: existing?.minute ?? 0,
+    );
 
     await showModalBottomSheet(
       context: context,
@@ -36,13 +42,18 @@ class RemindersSection extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('New reminder', style: theme.textTheme.displayLarge),
+                  Text(
+                    existing == null ? 'New reminder' : 'Edit reminder',
+                    style: theme.textTheme.displayLarge,
+                  ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: labelController,
                     decoration: InputDecoration(
                       hintText: 'e.g. Take vitamins',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -54,38 +65,76 @@ class RemindersSection extends StatelessWidget {
                       return ChoiceChip(
                         label: Text(type.label),
                         selected: isSelected,
-                        onSelected: (_) => setSheetState(() => selectedType = type),
+                        onSelected: (_) =>
+                            setSheetState(() => selectedType = type),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.access_time, color: theme.colorScheme.primary),
+                    leading: Icon(
+                      Icons.access_time,
+                      color: theme.colorScheme.primary,
+                    ),
                     title: const Text('Time'),
-                    trailing: Text(selectedTime.format(sheetContext), style: theme.textTheme.labelLarge),
+                    trailing: Text(
+                      selectedTime.format(sheetContext),
+                      style: theme.textTheme.labelLarge,
+                    ),
                     onTap: () async {
-                      final picked = await showTimePicker(context: sheetContext, initialTime: selectedTime);
-                      if (picked != null) setSheetState(() => selectedTime = picked);
+                      final picked = await showTimePicker(
+                        context: sheetContext,
+                        initialTime: selectedTime,
+                      );
+                      if (picked != null) {
+                        setSheetState(() => selectedTime = picked);
+                      }
                     },
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: () {
+                      onPressed: () async {
                         final label = labelController.text.trim().isEmpty
                             ? selectedType.label
                             : labelController.text.trim();
-                        cubit.addReminder(
-                          label: label,
-                          type: selectedType,
-                          hour: selectedTime.hour,
-                          minute: selectedTime.minute,
-                        );
-                        Navigator.of(sheetContext).pop();
+                        try {
+                          if (existing == null) {
+                            await cubit.addReminder(
+                              label: label,
+                              type: selectedType,
+                              hour: selectedTime.hour,
+                              minute: selectedTime.minute,
+                            );
+                          } else {
+                            await cubit.updateReminder(
+                              existing.copyWith(
+                                label: label,
+                                type: selectedType,
+                                hour: selectedTime.hour,
+                                minute: selectedTime.minute,
+                              ),
+                            );
+                          }
+                          if (sheetContext.mounted) {
+                            Navigator.of(sheetContext).pop();
+                          }
+                        } catch (_) {
+                          if (!sheetContext.mounted) return;
+                          ScaffoldMessenger.of(sheetContext).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Could not schedule this reminder. Enable notifications and try again.',
+                              ),
+                            ),
+                          );
+                        }
                       },
-                      child: const Text('Add reminder'),
+                      child: Text(
+                        existing == null ? 'Add reminder' : 'Save changes',
+                      ),
                     ),
                   ),
                 ],
@@ -96,6 +145,9 @@ class RemindersSection extends StatelessWidget {
       },
     );
   }
+
+  Future<void> _showAddReminderSheet(BuildContext context) =>
+      _showReminderSheet(context);
 
   IconData _iconFor(ReminderType type) {
     switch (type) {
@@ -125,7 +177,10 @@ class RemindersSection extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text('Custom reminders', style: theme.textTheme.bodyLarge),
+                      child: Text(
+                        'Custom reminders',
+                        style: theme.textTheme.bodyLarge,
+                      ),
                     ),
                     TextButton.icon(
                       onPressed: () => _showAddReminderSheet(context),
@@ -151,28 +206,54 @@ class RemindersSection extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
                       child: Row(
                         children: [
-                          Icon(_iconFor(reminder.type), size: 18, color: theme.colorScheme.primary),
+                          Icon(
+                            _iconFor(reminder.type),
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
                           const SizedBox(width: 14),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(reminder.label, style: theme.textTheme.bodyLarge),
-                                Text(
-                                  TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context),
-                                  style: theme.textTheme.bodyMedium,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              onTap: () => _showReminderSheet(
+                                context,
+                                existing: reminder,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
                                 ),
-                              ],
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      reminder.label,
+                                      style: theme.textTheme.bodyLarge,
+                                    ),
+                                    Text(
+                                      '${TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context)} · Tap to edit',
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                           Switch(
                             value: reminder.isEnabled,
-                            onChanged: (value) =>
-                                context.read<RemindersCubit>().toggleReminder(reminder.id, value),
+                            onChanged: (value) => context
+                                .read<RemindersCubit>()
+                                .toggleReminder(reminder.id, value),
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error, size: 20),
-                            onPressed: () => context.read<RemindersCubit>().deleteReminder(reminder.id),
+                            icon: Icon(
+                              Icons.delete_outline,
+                              color: theme.colorScheme.error,
+                              size: 20,
+                            ),
+                            onPressed: () => context
+                                .read<RemindersCubit>()
+                                .deleteReminder(reminder.id),
                           ),
                         ],
                       ),
